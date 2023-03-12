@@ -20,7 +20,7 @@
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Cards\WelcomeCard.json">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	</ItemGroup>
 
