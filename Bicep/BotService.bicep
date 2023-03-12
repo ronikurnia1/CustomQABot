@@ -4,8 +4,9 @@ param location string = resourceGroup().location
 param languageProjectName string
 param languageEndpointKey string
 param languageEndpointHostName string
-param repositoryUrl string = 'https://github.com/ronikurnia1/CustomQABot.git'
-param branch string = 'main'
+
+// param repositoryUrl string = 'https://github.com/ronikurnia1/CustomQABot.git'
+// param branch string = 'main'
 
 var appServicePlanName = toLower('${appName}-ServicePlan')
 var webSiteName = toLower('${appName}-webapp')
@@ -86,15 +87,18 @@ resource botService 'Microsoft.BotService/botServices@2022-09-15' = {
     sku: {
         name: sku
     }
+    
     properties: {
         displayName: botServiceName        
+        msaAppMSIResourceId: manageIdentity.id
         msaAppId: manageIdentity.properties.clientId
-        tenantId: manageIdentity.properties.tenantId
+        msaAppTenantId: manageIdentity.properties.tenantId        
+        msaAppType: 'UserAssignedMSI'
         endpoint: 'https://${appService.properties.defaultHostName}/api/messages'
         schemaTransformationVersion: '1.3'
         disableLocalAuth: false
         isStreamingSupported: false
-        publishingCredentials: null
+        publishingCredentials: null        
     }
 }
 
@@ -112,12 +116,12 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
     kind: 'StorageV2'
 }
 
-resource gitsource 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
-    parent: appService
-    name: 'web'
-    properties: {
-        repoUrl: repositoryUrl
-        branch: branch
-        isManualIntegration: true
-    }
-}
+// resource gitsource 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
+//     parent: appService
+//     name: 'web'
+//     properties: {
+//         repoUrl: repositoryUrl
+//         branch: branch
+//         isManualIntegration: true
+//     }
+// }
