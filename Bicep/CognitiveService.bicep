@@ -31,4 +31,5 @@ resource languageService 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
     }
 }
 
-output searchServiceName string = searchService.name
+output languageEndpointHostName string = languageService.properties.endpoint
+output languageEnpointKey string = languageService.listKeys().key1

@@ -1,12 +1,16 @@
 param appName string = 'ubot'
-param sku string = 'S1' // The SKU of App Service Plan
-param location string = resourceGroup().location // Location for all resources
+param sku string = 'S1'
+param location string = resourceGroup().location
+param languageProjectName string
+param languageEndpointKey string
+param languageEndpointHostName string
 param repositoryUrl string = 'https://github.com/Azure-Samples/nodejs-docs-hello-world'
 param branch string = 'main'
 
 var appServicePlanName = toLower('${appName}-ServicePlan')
 var webSiteName = toLower('${appName}-webapp')
 var storageAccountName = toLower('${appName}StorageAccount')
+var botServiceName = toLower('${appName}-bot')
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     name: appServicePlanName
@@ -44,19 +48,19 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
                 }
                 {
                     name: 'LanguageEndpointHostName'
-                    value: 'https://faq-service.cognitiveservices.azure.com/'
+                    value: languageEndpointHostName
                 }
                 {
                     name: 'LanguageEndpointKey'
-                    value: '3b1aef43b32d40ae8634c051dd75bc50'
+                    value: languageEndpointKey
                 }
                 {
                     name: 'ProjectName'
-                    value: 'XXXX'
+                    value: languageProjectName
                 }
                 {
                     name: 'AzureBlobStorageConnectionString'
-                    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'                    
+                    value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
                 }
                 {
                     name: 'MicrosoftAppId'
@@ -75,13 +79,17 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     }
 }
 
-resource gitsource 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
-    parent: appService
-    name: 'web'
+resource botService 'Microsoft.BotService/botServices@2022-09-15' = {
+    location: 'global'
+    name: botServiceName
+    sku: {
+        name: sku
+    }
     properties: {
-        repoUrl: repositoryUrl
-        branch: branch
-        isManualIntegration: true
+        displayName: botServiceName
+        msaAppId: manageIdentity.properties.clientId
+        tenantId: manageIdentity.properties.tenantId
+        endpoint: 'https://${appService.properties.defaultHostName}/api/messages'
     }
 }
 
@@ -97,4 +105,14 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
         name: 'Standard_LRS'
     }
     kind: 'StorageV2'
+}
+
+resource gitsource 'Microsoft.Web/sites/sourcecontrols@2022-03-01' = {
+    parent: appService
+    name: 'web'
+    properties: {
+        repoUrl: repositoryUrl
+        branch: branch
+        isManualIntegration: true
+    }
 }
