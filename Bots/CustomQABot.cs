@@ -88,7 +88,7 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     // Load attachment from embedded resource.
     private Attachment CreateAdaptiveCardAttachment()
     {
-        var cardResourcePath = "CustomQABot.Cards.welcomeCard.json";
+        var cardResourcePath = "CustomQABot.Cards.WelcomeCard.json";
 
         using var stream = GetType().Assembly.GetManifestResourceStream(cardResourcePath);
         using var reader = new StreamReader(stream);
