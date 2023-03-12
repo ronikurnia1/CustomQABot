@@ -4,13 +4,13 @@ param location string = resourceGroup().location
 param languageProjectName string
 param languageEndpointKey string
 param languageEndpointHostName string
-param repositoryUrl string = 'https://github.com/Azure-Samples/nodejs-docs-hello-world'
+param repositoryUrl string = 'https://github.com/ronikurnia1/CustomQABot.git'
 param branch string = 'main'
 
 var appServicePlanName = toLower('${appName}-ServicePlan')
 var webSiteName = toLower('${appName}-webapp')
 var storageAccountName = toLower('${appName}StorageAccount')
-var botServiceName = toLower('${appName}-bot')
+var botServiceName = toLower('${appName}-service')
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     name: appServicePlanName
@@ -79,17 +79,22 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     }
 }
 
-resource botService 'Microsoft.BotService/botServices@2022-09-15' = {
+resource botService 'Microsoft.BotService/botServices@2022-09-15' = {    
     location: 'global'
     name: botServiceName
+    kind: 'azurebot'
     sku: {
         name: sku
     }
     properties: {
-        displayName: botServiceName
+        displayName: botServiceName        
         msaAppId: manageIdentity.properties.clientId
         tenantId: manageIdentity.properties.tenantId
         endpoint: 'https://${appService.properties.defaultHostName}/api/messages'
+        schemaTransformationVersion: '1.3'
+        disableLocalAuth: false
+        isStreamingSupported: false
+        publishingCredentials: null
     }
 }
 
