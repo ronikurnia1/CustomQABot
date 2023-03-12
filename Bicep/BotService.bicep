@@ -27,7 +27,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
 resource appService 'Microsoft.Web/sites@2022-03-01' = {
     name: webSiteName
     location: location
-    kind: 'app'
+    kind: 'linux'
     identity: {
         type: 'UserAssigned'
         userAssignedIdentities: {
@@ -37,6 +37,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     properties: {
         serverFarmId: appServicePlan.id
         siteConfig: {
+            linuxFxVersion: 'DOTNETCORE|7.0'
             alwaysOn: true
             appSettings: [
                 {
