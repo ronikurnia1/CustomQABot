@@ -57,7 +57,8 @@ public class Startup
         services.AddTransient<IBot, CustomQABot<RootDialog>>();
 
         new DialogsBotComponent().ConfigureServices(services, Configuration);
-        ComponentRegistration.Add(new DeclarativeComponentRegistration());
+        ComponentRegistration.Add(new DialogsComponentRegistration());
+        
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
