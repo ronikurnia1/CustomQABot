@@ -58,6 +58,8 @@ public class Startup
 
         //new DialogsBotComponent().ConfigureServices(services, Configuration);
         ComponentRegistration.Add(new DialogsComponentRegistration());
+        ComponentRegistration.Add(new DeclarativeComponentRegistration());
+        //ComponentRegistration.Add(new AdaptiveComponentRegistration());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
