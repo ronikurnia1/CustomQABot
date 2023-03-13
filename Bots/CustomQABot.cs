@@ -47,7 +47,9 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         var stateAccessors = userState.CreateProperty<FeedbackCounter>(nameof(FeedbackCounter));
         var feedbackCounter = await stateAccessors.GetAsync(turnContext, () => new FeedbackCounter());
 
-        if (turnContext.Activity.Value != null && (int)(long)turnContext.Activity.Value == 669)
+
+
+        if (turnContext.Activity.Value != null && int.TryParse(turnContext.Activity.Value.ToString(), out int value) && value == 669)
         {
             feedbackCounter.NegativeFeedbackCount += 1;
             await stateAccessors.SetAsync(turnContext, feedbackCounter);
