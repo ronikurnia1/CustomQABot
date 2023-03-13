@@ -10,6 +10,7 @@ using Microsoft.Bot.Builder.Azure.Blobs;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Declarative;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,9 @@ public class Startup
             options.SerializerSettings.MaxDepth = HttpHelper.BotMessageSerializerSettings.MaxDepth;
         });
 
+        // Create the Bot Framework Authentication to be used with the Bot Adapter.
+        services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+
         // Create the Bot Framework Adapter with error handling enabled.
         services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
 
@@ -57,7 +61,7 @@ public class Startup
         // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
         services.AddTransient<IBot, CustomQABot<RootDialog>>();
 
-        new DialogsBotComponent().ConfigureServices(services, Configuration);
+        //new DialogsBotComponent().ConfigureServices(services, Configuration);
         ComponentRegistration.Add(new DialogsComponentRegistration());
     }
 
