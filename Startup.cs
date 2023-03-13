@@ -38,7 +38,7 @@ public class Startup
         });
 
         // Create the Bot Framework Authentication to be used with the Bot Adapter.
-        services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+        // services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
 
         // Create the Bot Framework Adapter with error handling enabled.
         services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
@@ -62,7 +62,7 @@ public class Startup
         services.AddTransient<IBot, CustomQABot<RootDialog>>();
 
         //new DialogsBotComponent().ConfigureServices(services, Configuration);
-        ComponentRegistration.Add(new DialogsComponentRegistration());
+        ComponentRegistration.Add(new DialogsComponentRegistration());        
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
