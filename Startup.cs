@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Azure.Blobs;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Dialogs.Declarative;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,7 +57,7 @@ public class Startup
         services.AddTransient<IBot, CustomQABot<RootDialog>>();
 
         new DialogsBotComponent().ConfigureServices(services, Configuration);
-        ComponentRegistration.Add(new DialogsComponentRegistration());
+        ComponentRegistration.Add(new DeclarativeComponentRegistration());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
