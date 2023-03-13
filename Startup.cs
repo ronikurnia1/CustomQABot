@@ -57,11 +57,8 @@ public class Startup
         // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
         services.AddTransient<IBot, CustomQABot<RootDialog>>();
 
-        //new DialogsBotComponent().ConfigureServices(services, Configuration);
-        ComponentRegistration.Add(new DialogsComponentRegistration());
-
-        new DeclarativeBotComponent().ConfigureServices(services, Configuration);
         new DialogsBotComponent().ConfigureServices(services, Configuration);
+        ComponentRegistration.Add(new DialogsComponentRegistration());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -12,9 +12,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.3" />
-		<PackageReference Include="Microsoft.Bot.Builder.Azure.Blobs" Version="4.19.3" />
-		<PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.19.3" />
-		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.19.3" />
+		<PackageReference Include="Microsoft.Bot.Builder.Azure.Blobs" Version="4.18.1" />
+		<PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.18.1" />
+		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.18.1" />
 		<PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
 	</ItemGroup>
 
