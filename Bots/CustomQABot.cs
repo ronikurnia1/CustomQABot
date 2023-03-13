@@ -85,20 +85,6 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         }
     }
 
-    protected override async Task OnConversationUpdateActivityAsync(ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
-    {
-        foreach (var member in turnContext.Activity.MembersAdded)
-        {
-            if (member.Id == turnContext.Activity.ReplyToId)
-            {
-                var welcomeCard = CreateAdaptiveCardAttachment();
-                var response = MessageFactory.Attachment(welcomeCard, ssml: "Welcome to UOB Bot");
-                await turnContext.SendActivityAsync(response, cancellationToken);
-            }
-        }
-        await base.OnConversationUpdateActivityAsync(turnContext, cancellationToken);
-    }
-
     // Load attachment from embedded resource.
     private Attachment CreateAdaptiveCardAttachment()
     {
@@ -107,6 +93,7 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         using var stream = GetType().Assembly.GetManifestResourceStream(cardResourcePath);
         using var reader = new StreamReader(stream);
         var adaptiveCard = reader.ReadToEnd();
+        //adaptiveCard.
         return new Attachment()
         {
             ContentType = "application/vnd.microsoft.card.adaptive",
