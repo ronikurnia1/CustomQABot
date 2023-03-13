@@ -3,7 +3,9 @@
 
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Teams;
 using Microsoft.Bot.Schema;
+using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -44,7 +46,6 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
         // Get the state properties from the turn context.
-
         var stateAccessors = userState.CreateProperty<FeedbackCounter>(nameof(FeedbackCounter));
         var feedbackCounter = await stateAccessors.GetAsync(turnContext, () => new FeedbackCounter());
         
@@ -80,10 +81,14 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
                 var welcomeCard = CreateAdaptiveCardAttachment();
                 var response = MessageFactory.Attachment(welcomeCard, ssml: "Welcome to UOB Bot");
                 await turnContext.SendActivityAsync(response, cancellationToken);
-                //await dialog.RunAsync(turnContext, conversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
+
+                var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
+                var appId = configuration["MicrosoftAppId"];
+                await TeamsInfo.SendMessageToTeamsChannelAsync(turnContext, response, teamsChannelId, appId, cancellationToken);
             }
         }
     }
+
 
     // Load attachment from embedded resource.
     private Attachment CreateAdaptiveCardAttachment()
@@ -102,3 +107,4 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     }
 
 }
+
