@@ -3,9 +3,7 @@
 
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Teams;
 using Microsoft.Bot.Schema;
-using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -90,11 +88,9 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     private Attachment CreateAdaptiveCardAttachment()
     {
         var cardResourcePath = "CustomQABot.Cards.WelcomeCard.json";
-
         using var stream = GetType().Assembly.GetManifestResourceStream(cardResourcePath);
         using var reader = new StreamReader(stream);
         var adaptiveCard = reader.ReadToEnd();
-        //adaptiveCard.
         return new Attachment()
         {
             ContentType = "application/vnd.microsoft.card.adaptive",
