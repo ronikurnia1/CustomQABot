@@ -10,6 +10,7 @@ using Microsoft.Bot.Builder.Azure.Blobs;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Declarative;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,8 +59,9 @@ public class Startup
 
         //new DialogsBotComponent().ConfigureServices(services, Configuration);
         ComponentRegistration.Add(new DialogsComponentRegistration());
-        ComponentRegistration.Add(new DeclarativeComponentRegistration());
-        //ComponentRegistration.Add(new AdaptiveComponentRegistration());
+
+        new DeclarativeBotComponent().ConfigureServices(services, Configuration);
+        new DialogsBotComponent().ConfigureServices(services, Configuration);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
