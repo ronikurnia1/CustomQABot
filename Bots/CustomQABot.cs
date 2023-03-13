@@ -80,17 +80,7 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
             {
                 var welcomeCard = CreateAdaptiveCardAttachment();
                 var response = MessageFactory.Attachment(welcomeCard, ssml: "Welcome to UOB Bot");
-
-                var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
-                if (teamsChannelId != null)
-                {
-                    var appId = configuration["MicrosoftAppId"];
-                    await TeamsInfo.SendMessageToTeamsChannelAsync(turnContext, response, teamsChannelId, appId, cancellationToken);
-                }
-                else
-                {
-                    await turnContext.SendActivityAsync(response, cancellationToken);
-                }
+                await turnContext.SendActivityAsync(response, cancellationToken);
             }
         }
     }
