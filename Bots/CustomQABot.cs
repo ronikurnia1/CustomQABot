@@ -24,7 +24,7 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     private readonly ILogger logger;
     private readonly IConfiguration configuration;
 
-    public CustomQABot(IConfiguration configuration, ConversationState conversationState, 
+    public CustomQABot(IConfiguration configuration, ConversationState conversationState,
         UserState userState, T dialog, ILogger<CustomQABot<T>> logger)
     {
         this.configuration = configuration;
@@ -48,7 +48,7 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         // Get the state properties from the turn context.
         var stateAccessors = userState.CreateProperty<FeedbackCounter>(nameof(FeedbackCounter));
         var feedbackCounter = await stateAccessors.GetAsync(turnContext, () => new FeedbackCounter());
-        
+
         if (turnContext.Activity.Value != null && (int)(long)turnContext.Activity.Value == 669)
         {
             feedbackCounter.NegativeFeedbackCount += 1;
@@ -80,11 +80,17 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
             {
                 var welcomeCard = CreateAdaptiveCardAttachment();
                 var response = MessageFactory.Attachment(welcomeCard, ssml: "Welcome to UOB Bot");
-                await turnContext.SendActivityAsync(response, cancellationToken);
 
                 var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
-                var appId = configuration["MicrosoftAppId"];
-                await TeamsInfo.SendMessageToTeamsChannelAsync(turnContext, response, teamsChannelId, appId, cancellationToken);
+                if (teamsChannelId != null)
+                {
+                    var appId = configuration["MicrosoftAppId"];
+                    await TeamsInfo.SendMessageToTeamsChannelAsync(turnContext, response, teamsChannelId, appId, cancellationToken);
+                }
+                else
+                {
+                    await turnContext.SendActivityAsync(response, cancellationToken);
+                }
             }
         }
     }
