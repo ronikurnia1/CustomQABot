@@ -12,9 +12,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.3" />
-		<PackageReference Include="Microsoft.Bot.Builder.Azure.Blobs" Version="4.20.0-daily.20230309.343560.7d9eb99" />
-		<PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.20.0-daily.20230309.343560.7d9eb99" />
-		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.20.0-daily.20230309.343560.7d9eb99" />
+		<PackageReference Include="Microsoft.Bot.Builder.Azure.Blobs" Version="4.19.3" />
+		<PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.19.3" />
+		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.19.3" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -22,6 +22,10 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	</ItemGroup>
+
+	<!--<ItemGroup>
+	  <ProjectReference Include="..\Microsoft.Bot.Builder.AI.QnA\Microsoft.Bot.Builder.AI.QnA.csproj" />
+	</ItemGroup>-->
 
 	<ItemGroup>
 		<Content Update="appsettings.json">

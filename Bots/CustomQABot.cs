@@ -3,16 +3,16 @@
 
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Bot.Connector;
-using System.Text.RegularExpressions;
 
 namespace CustomQABot.Bots;
 
@@ -36,10 +36,17 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
 
     public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
-        // Teams group chat
         if (turnContext.Activity.ChannelId.Equals(Channels.Msteams))
         {
-            turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();
+            // MS Teams specific handling
+            turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();            
+            if (turnContext.Activity.Id.Contains("f"))
+            {
+                // replace id of something like f:024f2e57-2b01-d703-0d97-008da7c94fa5 
+                // to into something that can be converted to int
+                var rnd = new Random();
+                turnContext.Activity.Id = rnd.NextInt64().ToString();   
+            }
         }
 
         await base.OnTurnAsync(turnContext, cancellationToken);
