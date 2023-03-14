@@ -24,6 +24,8 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     private readonly ILogger logger;
     private readonly IConfiguration configuration;
 
+    private readonly int negativeFeedbackValue;
+
     public CustomQABot(IConfiguration configuration, ConversationState conversationState,
         UserState userState, T dialog, ILogger<CustomQABot<T>> logger)
     {
@@ -32,6 +34,8 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         this.userState = userState;
         this.dialog = dialog;
         this.logger = logger;
+        negativeFeedbackValue = int.TryParse(configuration["NegativeFeedbackValue"], 
+            out int feedbackValue) ? feedbackValue : 0;
     }
 
     public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
@@ -40,15 +44,6 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         {
             // MS Teams specific handling
             turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();            
-            //if (turnContext.Activity.Id.Contains("f"))
-            //{
-            //    logger.LogInformation($"Activity.Id: {turnContext.Activity.Id}");
-            //    // replace id of something like f:024f2e57-2b01-d703-0d97-008da7c94fa5 
-            //    // to into something that can be converted to int
-            //    var rnd = new Random();
-            //    turnContext.Activity.Id = rnd.NextInt64().ToString();
-            //    logger.LogInformation($"Activity.Id change to: {turnContext.Activity.Id}");
-            //}
         }
 
         await base.OnTurnAsync(turnContext, cancellationToken);
@@ -64,7 +59,9 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         var stateAccessors = userState.CreateProperty<FeedbackCounter>(nameof(FeedbackCounter));
         var feedbackCounter = await stateAccessors.GetAsync(turnContext, () => new FeedbackCounter());
 
-        if (turnContext.Activity.Value != null && int.TryParse(turnContext.Activity.Value.ToString(), out int value) && value == 669)
+        if (turnContext.Activity.Value != null && 
+            int.TryParse(turnContext.Activity.Value.ToString(), out int value) && 
+            value == negativeFeedbackValue)
         {
             feedbackCounter.NegativeFeedbackCount += 1;
             await stateAccessors.SetAsync(turnContext, feedbackCounter);
