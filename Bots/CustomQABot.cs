@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Bot.Connector;
+using System.Text.RegularExpressions;
 
 namespace CustomQABot.Bots;
 
@@ -34,6 +36,12 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
 
     public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
+        // Teams group chat
+        if (turnContext.Activity.ChannelId.Equals(Channels.Msteams))
+        {
+            turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();
+        }
+
         await base.OnTurnAsync(turnContext, cancellationToken);
 
         // Save any state changes that might have occurred during the turn.
