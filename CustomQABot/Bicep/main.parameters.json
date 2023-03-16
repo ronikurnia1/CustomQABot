@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "languageProjectName": {
+      "value": "rnkbot"
+    },
+    "appName": {
+      "value": "rnkbot"
+    },
+    "languageSku":{
+      "value": "F0"
+    },
+    "searchSku":{
+      "value": "free"
+    },
+    "appServicePlanSku":{
+      "value": "F1"
+    },
+    "azureBotSku":{
+      "value": "F0"
+    }
+  }
+}
