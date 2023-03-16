@@ -31,7 +31,7 @@ resource searchService 'Microsoft.Search/searchServices@2022-09-01' = {
     }
 }
 
-resource manageIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
     name: '${appName}-identity'
     location: location
 }
@@ -64,9 +64,9 @@ resource botService 'Microsoft.BotService/botServices@2022-09-15' = {
     }
     properties: {
         displayName: botServiceName
-        msaAppMSIResourceId: manageIdentity.id
-        msaAppId: manageIdentity.properties.clientId
-        msaAppTenantId: manageIdentity.properties.tenantId
+        msaAppMSIResourceId: managedIdentity.id
+        msaAppId: managedIdentity.properties.clientId
+        msaAppTenantId: managedIdentity.properties.tenantId
         msaAppType: 'UserAssignedMSI'
         endpoint: 'https://${appService.properties.defaultHostName}/api/messages'
         schemaTransformationVersion: '1.3'
@@ -94,7 +94,7 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
     identity: {
         type: 'UserAssigned'
         userAssignedIdentities: {
-            '${manageIdentity.id}': {}
+            '${managedIdentity.id}': {}
         }
     }
     properties: {
@@ -128,11 +128,11 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
                 }
                 {
                     name: 'MicrosoftAppId'
-                    value: manageIdentity.properties.clientId
+                    value: managedIdentity.properties.clientId
                 }
                 {
                     name: 'MicrosoftAppTenantId'
-                    value: manageIdentity.properties.tenantId
+                    value: managedIdentity.properties.tenantId
                 }
                 {
                     name: 'MicrosoftAppType'

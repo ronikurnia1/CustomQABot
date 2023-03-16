@@ -1,6 +1,6 @@
 ##Deployment
 
-```dode
+```code
 $rgName="bot-service"
 $location="southeastasia"
 az group create --location $location --name $rgName
