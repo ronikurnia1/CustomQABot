@@ -9,10 +9,11 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Azure.Blobs;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using System.Collections.Concurrent;
 
 namespace CustomQABot;
 
@@ -51,6 +52,11 @@ public class Startup
         // Create the Conversation state. (Used by the Dialog system itself.)
         var conversationState = new ConversationState(storage);
         services.AddSingleton(conversationState);
+
+
+        // Create a global hashset for our ConversationReferences
+        services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
+
 
         // The Dialog that will be run by the bot.
         services.AddSingleton<RootDialog>();

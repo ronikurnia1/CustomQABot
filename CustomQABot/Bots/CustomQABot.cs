@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -24,16 +25,21 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
     private readonly ILogger logger;
     private readonly IConfiguration configuration;
 
+    private readonly ConcurrentDictionary<string, ConversationReference> conversations;
+
     private readonly int negativeFeedbackValue;
 
     public CustomQABot(IConfiguration configuration, ConversationState conversationState,
-        UserState userState, T dialog, ILogger<CustomQABot<T>> logger)
+        UserState userState, T dialog, ConcurrentDictionary<string, ConversationReference> conversationReferences, 
+        ILogger<CustomQABot<T>> logger)
     {
         this.configuration = configuration;
         this.conversationState = conversationState;
         this.userState = userState;
         this.dialog = dialog;
         this.logger = logger;
+        conversations = conversationReferences;
+
         negativeFeedbackValue = int.TryParse(configuration["NegativeFeedbackValue"], 
             out int feedbackValue) ? feedbackValue : 0;
     }
@@ -97,6 +103,18 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
         }
     }
 
+    private void AddConversationReference(Activity activity)
+    {
+        var conversationReference = activity.GetConversationReference();
+        conversations.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
+    }
+
+    protected override Task OnConversationUpdateActivityAsync(ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
+    {
+        AddConversationReference(turnContext.Activity as Activity);
+
+        return base.OnConversationUpdateActivityAsync(turnContext, cancellationToken);
+    }
 
     // Load attachment from embedded resource.
     private Attachment CreateAdaptiveCardAttachment()
