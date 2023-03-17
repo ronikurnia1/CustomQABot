@@ -35,7 +35,7 @@ Change **languageProjectName** and **appName** parameters with a uniqe short nam
 }
 ```
 
-Use Azure CLI to deploy the resources
+Use Azure CLI and navigate to **~/CustomQABot/Bicep** directory to deploy the resources
 
 ```shell
 
