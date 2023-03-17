@@ -1,4 +1,5 @@
-##Deployment
+
+##Deployment Guide
 
 Download or clone this repo
 
@@ -44,7 +45,8 @@ $rgName="[your-resource-group-name]"
 $location="[azure-location]"
 
 az group create --location $location --name $rgName
-az deployment group create --resource-group $rgName --template-file main.bicep --parameters main.parameters.jsonv --yes
+az deployment group create --resource-group $rgName `
+--template-file main.bicep --parameters main.parameters.jsonv --yes
 ```
 
 Wait for about 5-10 minutes for the deployment of azure resources and app to complete
