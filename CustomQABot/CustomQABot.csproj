@@ -7,11 +7,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Cards\TranscriptCard.data.json" />
+	  <Content Remove="Cards\TranscriptCard.json" />
 	  <Content Remove="Cards\welcomeCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.3" />
+	  <EmbeddedResource Include="Cards\TranscriptCard.data.json" />
+	  <EmbeddedResource Include="Cards\TranscriptCard.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AdaptiveCards" Version="3.0.0" />
+		<PackageReference Include="AdaptiveCards.Rendering.Html" Version="2.7.3" />
+		<PackageReference Include="AdaptiveCards.Templating" Version="1.4.0" />
+		<PackageReference Include="Azure.Communication.Email" Version="1.0.0-beta.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.4" />
 		<PackageReference Include="Microsoft.Bot.Builder.Azure.Blobs" Version="4.19.3" />
 		<!--<PackageReference Include="Microsoft.Bot.Builder.AI.QnA" Version="4.19.3" />-->
 		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.19.3" />
@@ -19,7 +30,7 @@
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Cards\WelcomeCard.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	</ItemGroup>
 
@@ -31,10 +42,6 @@
 		<Content Update="appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="TeamsApp\" />
 	</ItemGroup>
 
 </Project>

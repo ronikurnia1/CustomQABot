@@ -8,14 +8,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Net.Http;
+using CustomQABot.Middleware;
 
 namespace CustomQABot;
 
 public class AdapterWithErrorHandler : CloudAdapter
 {
-    public AdapterWithErrorHandler(IConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<IBotFrameworkHttpAdapter> logger, ConversationState conversationState = default)
-        : base(configuration, httpClientFactory, logger)
+    public AdapterWithErrorHandler(IConfiguration configuration, IHttpClientFactory httpClientFactory,
+        ILogger<IBotFrameworkHttpAdapter> logger, TranscriptMiddleware transcriptLogger,
+        ConversationState conversationState = default) : base(configuration, httpClientFactory, logger)
     {
+        Use(transcriptLogger);
+
         OnTurnError = async (turnContext, exception) =>
         {
             // Log any leaked exception from the application.
@@ -47,4 +51,5 @@ public class AdapterWithErrorHandler : CloudAdapter
             await turnContext.TraceActivityAsync("OnTurnError Trace", exception.Message, "https://www.botframework.com/schemas/error", "TurnError");
         };
     }
+
 }

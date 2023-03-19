@@ -20,6 +20,7 @@ public class Program
             {
                 webBuilder.ConfigureLogging((logging) =>
                 {
+                    //logging.SetMinimumLevel(LogLevel.Trace);
                     logging.AddDebug();
                     logging.AddConsole();
                 });

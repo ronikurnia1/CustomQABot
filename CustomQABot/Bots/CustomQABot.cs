@@ -7,11 +7,7 @@ using Microsoft.Bot.Connector;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,72 +15,60 @@ namespace CustomQABot.Bots;
 
 public class CustomQABot<T> : ActivityHandler where T : Dialog
 {
+    private const string WELCOME_TEMPLATE = "CustomQABot.Cards.WelcomeCard.json";
+    //private readonly string[] FEEDBACK_RESPONSES = { "YES", "NO" };
+
     private readonly BotState conversationState;
     private readonly Dialog dialog;
     private readonly BotState userState;
     private readonly ILogger logger;
     private readonly IConfiguration configuration;
 
-    private readonly ConcurrentDictionary<string, ConversationReference> conversations;
-
-    private readonly int negativeFeedbackValue;
-
     public CustomQABot(IConfiguration configuration, ConversationState conversationState,
-        UserState userState, T dialog, ConcurrentDictionary<string, ConversationReference> conversationReferences, 
-        ILogger<CustomQABot<T>> logger)
+        UserState userState, T dialog, ILogger<CustomQABot<T>> logger)
     {
         this.configuration = configuration;
         this.conversationState = conversationState;
         this.userState = userState;
         this.dialog = dialog;
         this.logger = logger;
-        conversations = conversationReferences;
-
-        negativeFeedbackValue = int.TryParse(configuration["NegativeFeedbackValue"], 
-            out int feedbackValue) ? feedbackValue : 0;
     }
+
 
     public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
         if (turnContext.Activity.ChannelId.Equals(Channels.Msteams))
         {
             // MS Teams specific handling
-            turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();            
+            turnContext.Activity.Text = turnContext.Activity.RemoveRecipientMention();
         }
 
         await base.OnTurnAsync(turnContext, cancellationToken);
 
-        // Save any state changes that might have occurred during the turn.
-        await conversationState.SaveChangesAsync(turnContext, false, cancellationToken);
-        await userState.SaveChangesAsync(turnContext, false, cancellationToken);
+        //// Save any state changes that might have occurred during the turn.
+        //await conversationState.SaveChangesAsync(turnContext, false, cancellationToken);
+        //await userState.SaveChangesAsync(turnContext, false, cancellationToken);
     }
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
-        // Get the state properties from the turn context.
-        var stateAccessors = userState.CreateProperty<FeedbackCounter>(nameof(FeedbackCounter));
-        var feedbackCounter = await stateAccessors.GetAsync(turnContext, () => new FeedbackCounter());
+        // check if contain feedback
+        
+        string responseCode = turnContext.Activity.Value != null ?
+            turnContext.Activity.Value.ToString() : string.Empty;
 
-        if (turnContext.Activity.Value != null && 
-            int.TryParse(turnContext.Activity.Value.ToString(), out int value) && 
-            value == negativeFeedbackValue)
+        if (!string.IsNullOrWhiteSpace(responseCode) && responseCode.StartsWith("FEEDBACK"))
         {
-            feedbackCounter.NegativeFeedbackCount += 1;
-            await stateAccessors.SetAsync(turnContext, feedbackCounter);
+            await turnContext.SendActivityAsync(MessageFactory.Text("Thanks for your feedback!"), cancellationToken);
+            var stateAccessor = conversationState.CreateProperty<Transcript>(nameof(Transcript));
+            var feedback = await stateAccessor.GetAsync(turnContext, () => new Transcript(), cancellationToken);
+            feedback.NegativeFeedbackCount += responseCode.ToUpper() == "FEEDBACK-NO" ? 1 : 0;
         }
-
-        // Run the Dialog with the new message Activity.
-        await dialog.RunAsync(turnContext, conversationState.CreateProperty<DialogState>
-            (nameof(DialogState)), cancellationToken);
-
-
-        if (feedbackCounter.NegativeFeedbackCount >= 3)
+        else
         {
-            // TODO: Got 3 negative feedbacks, escalate here
-            await turnContext.SendActivityAsync(MessageFactory.Text("Escalation signal triggered!"), cancellationToken);
-
-            feedbackCounter.NegativeFeedbackCount = 0;
-            await stateAccessors.SetAsync(turnContext, feedbackCounter);
+            // Run the Dialog with the new message Activity.
+            await dialog.RunAsync(turnContext, conversationState.CreateProperty<DialogState>
+                (nameof(DialogState)), cancellationToken);
         }
     }
 
@@ -96,39 +80,12 @@ public class CustomQABot<T> : ActivityHandler where T : Dialog
             // To learn more about Adaptive Cards, see https://aka.ms/msbot-adaptivecards for more details.
             if (member.Id != turnContext.Activity.Recipient.Id)
             {
-                var welcomeCard = CreateAdaptiveCardAttachment();
+                var welcomeCard = Cards.CardBuilder.CreateAdaptiveCardAttachment(WELCOME_TEMPLATE, GetType().Assembly);
                 var response = MessageFactory.Attachment(welcomeCard, ssml: "Welcome to UOB Bot");
                 await turnContext.SendActivityAsync(response, cancellationToken);
             }
         }
     }
-
-    private void AddConversationReference(Activity activity)
-    {
-        var conversationReference = activity.GetConversationReference();
-        conversations.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
-    }
-
-    protected override Task OnConversationUpdateActivityAsync(ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
-    {
-        AddConversationReference(turnContext.Activity as Activity);
-
-        return base.OnConversationUpdateActivityAsync(turnContext, cancellationToken);
-    }
-
-    // Load attachment from embedded resource.
-    private Attachment CreateAdaptiveCardAttachment()
-    {
-        var cardResourcePath = "CustomQABot.Cards.WelcomeCard.json";
-        using var stream = GetType().Assembly.GetManifestResourceStream(cardResourcePath);
-        using var reader = new StreamReader(stream);
-        var adaptiveCard = reader.ReadToEnd();
-        return new Attachment()
-        {
-            ContentType = "application/vnd.microsoft.card.adaptive",
-            Content = JsonConvert.DeserializeObject(adaptiveCard),
-        };
-    }
-
 }
+
 

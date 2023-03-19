@@ -1,0 +1,32 @@
+KeyValuePair`2;KeyValuePair`2.key;KeyValuePair`2.Key
+"""locale"": ""en-US""";"Field 'key' defined on type 'System.Collections.Generic.KeyValuePair`2[System.String,Newtonsoft.Json.Linq.JToken]' is not a field on the target object which is of type 'Newtonsoft.Json.Linq.JProperty'.";"Object does not match target type."
+"""activity"": {
+  ""type"": ""message"",
+  ""id"": ""ebcc2cc0-c4d8-11ed-b50c-2fe95a3376c4"",
+  ""timestamp"": ""2023-03-17T22:32:26.635+07:00"",
+  ""localTimestamp"": ""2023-03-17T22:32:26+07:00"",
+  ""localTimezone"": ""Asia/Jakarta"",
+  ""serviceUrl"": ""http://localhost:60035"",
+  ""channelId"": ""emulator"",
+  ""from"": {
+    ""id"": ""a0456f45-9ca5-4a80-97b4-e969a53e4984"",
+    ""name"": ""User"",
+    ""role"": ""user""
+  },
+  ""conversation"": {
+    ""id"": ""680d4a20-c4cb-11ed-97d7-854448b09993|livechat""
+  },
+  ""recipient"": {
+    ""id"": ""5c8d3be0-c4c3-11ed-97d7-854448b09993"",
+    ""name"": ""Bot"",
+    ""role"": ""bot""
+  },
+  ""textFormat"": ""plain"",
+  ""locale"": ""en-US"",
+  ""text"": ""surface pen"",
+  ""channelData"": {
+    ""clientActivityID"": ""1679067146609052o11nu5gs9"",
+    ""clientTimestamp"": ""2023-03-17T15:32:26.609Z""
+  }
+}";"Field 'key' defined on type 'System.Collections.Generic.KeyValuePair`2[System.String,Newtonsoft.Json.Linq.JToken]' is not a field on the target object which is of type 'Newtonsoft.Json.Linq.JProperty'.";"Object does not match target type."
+"""lastresult"": null";"Field 'key' defined on type 'System.Collections.Generic.KeyValuePair`2[System.String,Newtonsoft.Json.Linq.JToken]' is not a field on the target object which is of type 'Newtonsoft.Json.Linq.JProperty'.";"Object does not match target type."

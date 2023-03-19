@@ -15,6 +15,7 @@ namespace CustomQABot.Controllers;
 // achieved by specifying a more specific type for the bot constructor argument.
 [Route("api/messages")]
 [ApiController]
+
 public class BotController : ControllerBase
 {
     private readonly IBotFrameworkHttpAdapter _adapter;

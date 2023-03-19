@@ -5,8 +5,13 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.AI.QnA.Dialogs;
 using Microsoft.Bot.Builder.AI.QnA.Models;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +26,7 @@ public class RootDialog : ComponentDialog
     private const string ActiveLearningCardTitle = "Did you mean:";
     private const string ActiveLearningCardNoMatchText = "None of the above.";
     private const string ActiveLearningCardNoMatchResponse = "Thanks for the feedback.";
+    private const string FEEDBACK_TEMPLATE = "CustomQABot.Cards.FeedbackCard.json";
 
     private const float ScoreThreshold = 0.3f;
     private const int TopAnswers = 3;
@@ -28,14 +34,25 @@ public class RootDialog : ComponentDialog
     private const bool IsTest = false;
     private const bool IncludeUnstructuredSources = true;
 
+    private readonly ILogger<RootDialog> logger;
+
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RootDialog"/> class.
     /// </summary>
     /// <param name="configuration">An <see cref="IConfiguration"/> instance.</param>
-    public RootDialog(IConfiguration configuration) : base("root")
+    public RootDialog(IConfiguration configuration, ILogger<RootDialog> logger) : base("root")
     {
-        AddDialog(CreateQnAMakerDialog(configuration));
-        AddDialog(new WaterfallDialog(DialogId).AddStep(InitialStepAsync)); //.AddStep(FinalStepAsync));
+        this.logger = logger;
+        var qnaMakerDialog = CreateQnAMakerDialog(configuration);
+
+        AddDialog(qnaMakerDialog);
+        AddDialog(new WaterfallDialog(DialogId, new WaterfallStep[]
+        {
+            InitialStepAsync,
+            FinalStepAsync,
+        }));
+
 
         // The initial child Dialog to run.
         InitialDialogId = DialogId;
@@ -68,7 +85,9 @@ public class RootDialog : ComponentDialog
 
         // Create a new instance of QnAMakerDialog with dialogOptions initialized.
         var noAnswer = MessageFactory.Text(configuration["DefaultAnswer"] ?? string.Empty);
-        var qnaMakerDialog = new QnAMakerDialog(nameof(QnAMakerDialog), knowledgeBaseId, endpointKey, hostname, noAnswer: noAnswer, cardNoMatchResponse: MessageFactory.Text(ActiveLearningCardNoMatchResponse))
+        var qnaMakerDialog = new QnAMakerDialog(nameof(QnAMakerDialog), knowledgeBaseId,
+            endpointKey, hostname, noAnswer: noAnswer,
+            cardNoMatchResponse: MessageFactory.Text(ActiveLearningCardNoMatchResponse))
         {
             Threshold = ScoreThreshold,
             ActiveLearningCardTitle = ActiveLearningCardTitle,
@@ -80,7 +99,7 @@ public class RootDialog : ComponentDialog
             DisplayPreciseAnswerOnly = displayPreciseAnswerOnly,
             IncludeUnstructuredSources = IncludeUnstructuredSources,
             RankerType = RankerType,
-            IsTest = IsTest,            
+            IsTest = IsTest,
         };
 
         return qnaMakerDialog;
@@ -88,15 +107,63 @@ public class RootDialog : ComponentDialog
 
     private async Task<DialogTurnResult> InitialStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        return await stepContext.BeginDialogAsync(nameof(QnAMakerDialog), null, cancellationToken);
+        var response = await stepContext.BeginDialogAsync(nameof(QnAMakerDialog), null, cancellationToken);
+        return response;
     }
+
 
     private async Task<DialogTurnResult> FinalStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        string status = "You are signed up to review";
-        await stepContext.Context.SendActivityAsync(status);
+        var investigate = JsonConvert.SerializeObject(stepContext.Context.TurnState["turn"],
+            new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, Formatting = Formatting.Indented });
 
-        return await stepContext.EndDialogAsync(null, cancellationToken);
-    }   
+        logger.LogInformation($"====INVESTIGATTION: {investigate}");
+
+        var feedbackCard = new HeroCard()
+        {
+            Text = "Was this answer helpful?",
+            Buttons = new List<CardAction> {
+                new CardAction {
+                Type = "messageBack",
+                Title = "Yes",
+                Text = "Yes",
+                DisplayText = "Yes",
+                Value = "FEEDBACK-YES"
+                },
+                new CardAction {
+                Type = "messageBack",
+                Title = "No",
+                Text = "No",
+                DisplayText = "No",
+                Value = "FEEDBACK-NO"
+                }
+            }
+        };
+
+        var feedback = MessageFactory.Attachment(feedbackCard.ToAttachment(), ssml: "Was this answer helpful?");
+        await stepContext.Context.SendActivityAsync(feedback, cancellationToken);
+        return await stepContext.EndDialogAsync();
+    }
+
+    public override Task EndDialogAsync(ITurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken = default)
+    {
+
+        return base.EndDialogAsync(turnContext, instance, reason, cancellationToken);
+    }
+
+    private Attachment CreateAdaptiveCardAttachment(string template)
+    {
+        var cardResourcePath = template;
+        using var stream = GetType().Assembly.GetManifestResourceStream(cardResourcePath);
+        using var reader = new StreamReader(stream);
+        var adaptiveCard = reader.ReadToEnd();
+        return new Attachment()
+        {
+            ContentType = "application/vnd.microsoft.card.adaptive",
+            Content = JsonConvert.DeserializeObject(adaptiveCard),
+        };
+    }
+
 
 }
+
