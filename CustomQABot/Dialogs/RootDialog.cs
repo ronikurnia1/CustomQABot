@@ -111,7 +111,6 @@ public class RootDialog : ComponentDialog
         return response;
     }
 
-
     private async Task<DialogTurnResult> FinalStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         var investigate = JsonConvert.SerializeObject(stepContext.Context.TurnState["turn"],
@@ -128,14 +127,14 @@ public class RootDialog : ComponentDialog
                 Title = "Yes",
                 Text = "Yes",
                 DisplayText = "Yes",
-                Value = "FEEDBACK-YES"
+                Value = new FeedbackValue {Feedback = "FEEDBACK-YES"}
                 },
                 new CardAction {
                 Type = "messageBack",
                 Title = "No",
                 Text = "No",
                 DisplayText = "No",
-                Value = "FEEDBACK-NO"
+                Value = new FeedbackValue {Feedback = "FEEDBACK-NO"}
                 }
             }
         };
@@ -145,11 +144,6 @@ public class RootDialog : ComponentDialog
         return await stepContext.EndDialogAsync();
     }
 
-    public override Task EndDialogAsync(ITurnContext turnContext, DialogInstance instance, DialogReason reason, CancellationToken cancellationToken = default)
-    {
-
-        return base.EndDialogAsync(turnContext, instance, reason, cancellationToken);
-    }
 
     private Attachment CreateAdaptiveCardAttachment(string template)
     {
@@ -164,6 +158,11 @@ public class RootDialog : ComponentDialog
         };
     }
 
+}
 
+
+public class FeedbackValue
+{
+    public string Feedback { get; set; }
 }
 
