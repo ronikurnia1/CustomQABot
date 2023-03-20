@@ -107,15 +107,16 @@ resource commServiceEmail 'Microsoft.Communication/emailServices@2022-07-01-prev
 }
 
 resource commServiceEmailDomain 'Microsoft.Communication/emailServices/domains@2022-07-01-preview' = {
-    name: toLower('${appName}-emaildomain')
+    name: 'AzureManagedDomain'
     location: 'global'
     parent: commServiceEmail
     properties: {
-        domainManagement: 'AzureManagedDomain'
+        dataLocation: 'unitedstates'
         userEngagementTracking:'Disabled'
         validSenderUsernames: {
-             '@DoNotReply': 'DoNotReply'
+             'DoNotReply': 'DoNotReply'
         }
+        domainManagement: 'AzureManaged'
     }
 }
 
