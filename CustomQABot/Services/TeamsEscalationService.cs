@@ -20,6 +20,7 @@ public class TeamsEscalationService : IEscalationService
 
     public async Task EscalateAsync(string payload, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(httpClient.BaseAddress.AbsolutePath)) return;
         logger.LogInformation("Send escalation message to Teams channel");
         var content = new StringContent(payload);
         await httpClient.PostAsync("", content, cancellationToken);

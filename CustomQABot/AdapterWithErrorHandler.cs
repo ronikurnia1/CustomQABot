@@ -15,11 +15,10 @@ namespace CustomQABot;
 public class AdapterWithErrorHandler : CloudAdapter
 {
     public AdapterWithErrorHandler(IConfiguration configuration, IHttpClientFactory httpClientFactory,
-        ILogger<IBotFrameworkHttpAdapter> logger, TranscriptMiddleware transcriptLogger,
+        ILogger<IBotFrameworkHttpAdapter> logger, TranscriptMiddleware transcriptMiddleware,
         ConversationState conversationState = default) : base(configuration, httpClientFactory, logger)
     {
-        Use(transcriptLogger);
-
+        Use(transcriptMiddleware);
         OnTurnError = async (turnContext, exception) =>
         {
             // Log any leaked exception from the application.

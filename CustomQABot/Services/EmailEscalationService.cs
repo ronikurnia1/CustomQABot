@@ -26,6 +26,8 @@ public class EmailEscalationService : IEscalationService
 
     public async Task EscalateAsync(string payLoad, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(communicationServiceConnectionString)) return;
+
         logger.LogInformation("Send escalation message via e-mail");
         EmailClient emailClient = new(communicationServiceConnectionString);
 
