@@ -1,4 +1,3 @@
-
 @description('Language project name.')
 param languageProjectName string
 param location string = resourceGroup().location
@@ -13,6 +12,7 @@ param searchSku string
 param appServicePlanSku string
 @allowed([ 'F0', 'S1' ])
 param azureBotSku string
+param teamsWebhook string
 
 param repositoryUrl string = 'https://github.com/ronikurnia1/CustomQABot.git'
 param branch string = 'main'
@@ -49,7 +49,7 @@ resource languageService 'Microsoft.CognitiveServices/accounts@2022-12-01' = {
             qnaAzureSearchEndpointKey: searchService.listAdminKeys().primaryKey
         }
     }
-    
+
     identity: {
         type: 'SystemAssigned'
     }
@@ -87,6 +87,38 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     }
 }
 
+resource commService 'Microsoft.Communication/communicationServices@2022-07-01-preview' = {
+    name: toLower('${appName}-comm-svc')
+    location: 'global'
+    properties: {
+        dataLocation: 'unitedstates'
+        linkedDomains: [
+            commServiceEmailDomain.id
+        ]
+    }
+}
+
+resource commServiceEmail 'Microsoft.Communication/emailServices@2022-07-01-preview' = {
+    name: toLower('${appName}-comm-email')
+    location: 'global'
+    properties: {
+        dataLocation: 'unitedstates'
+    }
+}
+
+resource commServiceEmailDomain 'Microsoft.Communication/emailServices/domains@2022-07-01-preview' = {
+    name: toLower('${appName}-emaildomain')
+    location: 'global'
+    parent: commServiceEmail
+    properties: {
+        domainManagement: 'AzureManaged'
+        userEngagementTracking: 'Enabled'
+        validSenderUsernames: {
+             '@DoNotReply': 'DoNotReply'
+        }
+    }
+}
+
 resource appService 'Microsoft.Web/sites@2022-03-01' = {
     name: webSiteName
     location: location
@@ -102,14 +134,6 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
         siteConfig: {
             linuxFxVersion: 'DOTNETCORE|7.0'
             appSettings: [
-                {
-                    name: 'DefaultAnswer'
-                    value: 'No answer found'
-                }
-                {
-                    name: 'EnablePreciseAnswer'
-                    value: 'true'
-                }
                 {
                     name: 'LanguageEndpointHostName'
                     value: languageService.properties.endpoint
@@ -137,6 +161,14 @@ resource appService 'Microsoft.Web/sites@2022-03-01' = {
                 {
                     name: 'MicrosoftAppType'
                     value: 'UserAssignedMSI'
+                }
+                {
+                    name: 'CommunicationServiceConnectionString'
+                    value: commService.listKeys().primaryConnectionString
+                }
+                {
+                    name: 'TeamsWebHook'
+                    value: teamsWebhook
                 }
             ]
         }

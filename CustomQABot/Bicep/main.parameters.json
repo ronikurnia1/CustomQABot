@@ -8,17 +8,20 @@
     "appName": {
       "value": "rnkbot"
     },
-    "languageSku":{
+    "languageSku": {
       "value": "F0"
     },
-    "searchSku":{
+    "searchSku": {
       "value": "free"
     },
-    "appServicePlanSku":{
+    "appServicePlanSku": {
       "value": "F1"
     },
-    "azureBotSku":{
+    "azureBotSku": {
       "value": "F0"
+    },
+    "teamsWebhook": {
+      "value": "https://microsoft.webhook.office.com/webhookb2/cf701ebd-9c78-434c-8ff2-69cf7cbc7960@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/663c4b26a721467294b80d88b7448753/15a0e07c-fc63-4d44-a53d-6399ac9d4768"
     }
   }
 }
