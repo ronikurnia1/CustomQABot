@@ -111,7 +111,7 @@ resource commServiceEmailDomain 'Microsoft.Communication/emailServices/domains@2
     location: 'global'
     parent: commServiceEmail
     properties: {
-        domainManagement: 'AzureManaged'
+        domainManagement: 'AzureManagedDomain'
         userEngagementTracking: 'Enabled'
         validSenderUsernames: {
              '@DoNotReply': 'DoNotReply'
