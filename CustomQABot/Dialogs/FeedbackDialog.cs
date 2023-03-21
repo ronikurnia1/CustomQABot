@@ -146,6 +146,10 @@ public class FeedbackDialog : ComponentDialog
             await emailService.EscalateAsync(card.Html, cancellationToken);
             // Escalation to Teams
             await teamsService.EscalateAsync(card.CardJson, cancellationToken);
+
+            // Clear feedback data
+            await accessor.DeleteAsync(innerDc.Context, cancellationToken);
+
             return await innerDc.EndDialogAsync(null, cancellationToken);
         }
         return await base.OnContinueDialogAsync(innerDc, cancellationToken);
