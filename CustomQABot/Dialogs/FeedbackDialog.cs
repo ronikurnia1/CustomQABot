@@ -136,7 +136,7 @@ public class FeedbackDialog : ComponentDialog
 
             feedback.Title = escalationInput["title"].ToString();
             feedback.Details = escalationInput["details"].ToString();
-            feedback.DateTime = DateTime.Now.ToString("MMM dd, yyyy hh:mm tt");
+            feedback.DateTime = DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt");
             feedback.Logo = "https://botuob-webapp.azurewebsites.net/images/UOB_transparent.png";
             var card = CardBuilder.CreateAdaptiveCard(ESCALATION_SUBMIT_TEMPLATE, feedback, GetType().Assembly);
 
