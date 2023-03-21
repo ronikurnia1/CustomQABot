@@ -154,7 +154,9 @@ public class TranscriptMiddleware : IMiddleware
                     message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
                 }
             }
-            var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" : "BOT:";
+            var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" :
+                activity.From.Role == "user" ? "USR:" : "BOT:";
+
             feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }
     }
