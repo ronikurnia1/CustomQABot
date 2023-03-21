@@ -27,7 +27,7 @@ public static class CardBuilder
     }
 
 
-    public static AdaptiveCardResult CreateAdaptiveCard<T>(string template, Transcript payload, System.Reflection.Assembly assembly)
+    public static AdaptiveCardResult CreateAdaptiveCard(string template, Feedback payload, System.Reflection.Assembly assembly)
     {
         var cardResourcePath = template;
         using var stream = assembly.GetManifestResourceStream(cardResourcePath);

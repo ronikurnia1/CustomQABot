@@ -1,8 +1,5 @@
-﻿using AdaptiveCards;
-using CustomQABot.Services;
-using Microsoft.Bot.Builder;
+﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -15,31 +12,19 @@ namespace CustomQABot.Middleware;
 
 public class TranscriptMiddleware : IMiddleware
 {
-    private const string TRANSCRIPT_TEMPLATE = "CustomQABot.Cards.TranscriptCard.json";
-
     private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, MaxDepth = null };
     private readonly ILogger<TranscriptMiddleware> logger;
     private readonly BotState conversationState;
     private readonly BotState userState;
 
-    private readonly IEscalationService escalationService;
-    private readonly IEscalationService teamsEscalationService;
-
-    private readonly int negativeFeedbackThreshold;
-    private readonly string defaultNoAswer;
+    //private readonly string defaultNoAnswer;
 
     public TranscriptMiddleware(ConversationState conversationState, UserState userState,
-        IConfiguration configuration, EmailEscalationService escalationService,
-        TeamsEscalationService teamsEscalationService, ILogger<TranscriptMiddleware> logger)
+        ILogger<TranscriptMiddleware> logger)
     {
         this.logger = logger;
         this.conversationState = conversationState;
         this.userState = userState;
-        negativeFeedbackThreshold = int.TryParse(configuration["NegativeFeedbackThreshold"],
-            out int threshold) ? threshold : 0;
-        defaultNoAswer = configuration["DefaultNoAnswer"];
-        this.escalationService = escalationService;
-        this.teamsEscalationService = teamsEscalationService;
     }
 
     /// Records incoming and outgoing activities to the conversation store.
@@ -88,8 +73,8 @@ public class TranscriptMiddleware : IMiddleware
     private async Task TryLogTranscriptAsync(Queue<IMessageActivity> chatQueue, ITurnContext turnContext,
         ILogger<TranscriptMiddleware> logger, CancellationToken cancellationToken)
     {
-        var propertyAccessor = conversationState.CreateProperty<Transcript>(nameof(Transcript));
-        var transcript = await propertyAccessor.GetAsync(turnContext, () => new Transcript(), cancellationToken);
+        var propertyAccessor = userState.CreateProperty<Feedback>(nameof(Feedback));
+        var transcript = await propertyAccessor.GetAsync(turnContext, () => new Feedback(), cancellationToken);
         try
         {
             while (chatQueue.Count > 0)
@@ -97,7 +82,7 @@ public class TranscriptMiddleware : IMiddleware
                 // Process the queue and log all the activities in parallel.
                 var activity = chatQueue.Dequeue();
                 BotAssert.ActivityNotNull(activity);
-                UpdateTranscript(transcript, activity);
+                UpdateFeedbackTranscript(transcript, activity);
             }
         }
         catch (Exception ex)
@@ -108,25 +93,6 @@ public class TranscriptMiddleware : IMiddleware
         // Save any state changes that might have occurred during the turn.
         await conversationState.SaveChangesAsync(turnContext, false, cancellationToken);
         await userState.SaveChangesAsync(turnContext, false, cancellationToken);
-
-
-        // Send transcript
-        if (negativeFeedbackThreshold > 0 && transcript.NegativeFeedbackCount >= negativeFeedbackThreshold)
-        {
-            transcript.DateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            transcript.Logo = "https://botuob-webapp.azurewebsites.net/images/UOB_transparent.png";
-            var card = Cards.CardBuilder.CreateAdaptiveCard<Attachment>(TRANSCRIPT_TEMPLATE, transcript, GetType().Assembly);
-
-            // Transcript to user
-            await turnContext.SendActivityAsync(MessageFactory.Attachment(card.Attachment, ssml: "Transcript"), cancellationToken);
-            // Escalate to email
-            await escalationService.EscalateAsync(card.Html, cancellationToken);
-            // Escalation to Teams
-            await teamsEscalationService.EscalateAsync(card.CardJson, cancellationToken);
-
-            await conversationState.DeleteAsync(turnContext, cancellationToken);
-            await userState.DeleteAsync(turnContext, cancellationToken);
-        }
     }
 
     private static IMessageActivity CloneActivity(IMessageActivity activity)
@@ -151,68 +117,42 @@ public class TranscriptMiddleware : IMiddleware
             var generatedId = $"g_{Guid.NewGuid()}";
             activity.Id = generatedId;
         }
-
         return activityWithId;
     }
 
     private static void LogActivity(Queue<IMessageActivity> transcript, IMessageActivity activity)
     {
-        activity.Timestamp ??= DateTime.UtcNow;
         transcript.Enqueue(activity);
     }
 
-    private static void UpdateTranscript(Transcript transcript, IMessageActivity activity)
+    private static void UpdateFeedbackTranscript(Feedback feedback, IMessageActivity activity)
     {
-        if (string.IsNullOrWhiteSpace(transcript.Name))
+        if (string.IsNullOrWhiteSpace(feedback.Name))
         {
-            transcript.Logo = "";
-            transcript.Title = "UOB Bot Transcript";
-            transcript.Name = string.IsNullOrEmpty(activity.ReplyToId) ? activity.From.Name : string.Empty;
+            feedback.Name = string.IsNullOrEmpty(activity.ReplyToId) ? activity.From.Name : string.Empty;
         }
         var message = string.IsNullOrWhiteSpace(activity.Text) ? null : activity.Text.Trim();
         message ??= string.IsNullOrWhiteSpace(activity.Speak) ? null : activity.Speak.Trim();
-        if (message == "Did you mean:" && activity.Attachments.Count > 0)
-        {
-            var card = HeroCard.ContentType == activity.Attachments[0].ContentType
-                ? (Newtonsoft.Json.Linq.JObject)activity.Attachments[0].Content : null;
 
-            if (card != null)
+        if(!string.IsNullOrWhiteSpace(message))
+        {
+            message = message.Replace("FEEDBACK-YES", "Yes");
+            message = message.Replace("FEEDBACK-REPHRASE", "Rephrase");
+            message = message.Replace("FEEDBACK-AGENT", "Ask agent");
+
+            if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
-                message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
-            }
-        }
+                var card = HeroCard.ContentType == activity.Attachments[0].ContentType
+                    ? (Newtonsoft.Json.Linq.JObject)activity.Attachments[0].Content : null;
 
-        var sender = string.IsNullOrEmpty(activity.ReplyToId) ? "USER" : "BOT";
-        transcript.Chats.Add(new Chat { Message = message, Sender = sender });
-    }
-
-    private static void UpdatePlainTranscript(Transcript transcript, IMessageActivity activity)
-    {
-        if (string.IsNullOrWhiteSpace(transcript.Name))
-        {
-            transcript.Name = string.IsNullOrEmpty(activity.ReplyToId) ? activity.From.Name : string.Empty;
-        }
-        var message = string.IsNullOrWhiteSpace(activity.Text) ? null : activity.Text.Trim();
-        message ??= string.IsNullOrWhiteSpace(activity.Speak) ? null : activity.Speak.Trim();
-        if (message == "Did you mean:" && activity.Attachments.Count > 0)
-        {
-            var card = HeroCard.ContentType == activity.Attachments[0].ContentType
-                ? (Newtonsoft.Json.Linq.JObject)activity.Attachments[0].Content : null;
-            if (card != null)
-            {
-                message = $"{message}{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
+                if (card != null)
+                {
+                    message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
+                }
             }
-        }
-        if (string.IsNullOrWhiteSpace(activity.ReplyToId))
-        {
-            // question
-            transcript.PlainChats.AppendLine(transcript.PlainChats.Length > 0 ? $"{Environment.NewLine}USER: {message}" : $"USER: {message}");
-        }
-        else
-        {
-            // answer
-            transcript.PlainChats.AppendLine($"BOT: {message}");
+
+            var sender = string.IsNullOrEmpty(activity.ReplyToId) ? "USR:" : "BOT:";
+            feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }
     }
-
 }

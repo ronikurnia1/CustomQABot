@@ -7,14 +7,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Cards\EscalationInputCard.json" />
+	  <Content Remove="Cards\EscalationSubmitCard.json" />
 	  <Content Remove="Cards\TranscriptCard.data.json" />
-	  <Content Remove="Cards\TranscriptCard.json" />
 	  <Content Remove="Cards\welcomeCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Cards\TranscriptCard.data.json" />
-	  <EmbeddedResource Include="Cards\TranscriptCard.json" />
+	  <EmbeddedResource Include="Cards\EscalationInputCard.json" />
+	  <EmbeddedResource Include="Cards\EscalationSubmitCard.data.json" />
+	  <EmbeddedResource Include="Cards\EscalationSubmitCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>

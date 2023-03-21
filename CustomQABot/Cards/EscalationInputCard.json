@@ -1,0 +1,42 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.2",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "medium",
+      "weight": "bolder",
+      "text": "Fill the form to ask agent",
+      "horizontalAlignment": "center",
+      "wrap": true,
+      "style": "heading"
+    },
+    {
+      "type": "Input.Text",
+      "label": "Title",
+      "style": "text",
+      "id": "title",
+      "isRequired": true,
+      "errorMessage": "Title is required"
+    },
+    {
+      "type": "Input.Text",
+      "label": "Details",
+      "style": "text",
+      "isMultiline": true,
+      "id": "details",
+      "isRequired": true,
+      "errorMessage": "Details is required"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit",
+      "data": {
+        "id": "EscalationInput"
+      }
+    }
+  ]
+}

@@ -57,10 +57,10 @@ public class Startup
         services.AddHttpClient<TeamsEscalationService>();
 
         // The Dialog that will be run by the bot.
-        services.AddSingleton<RootDialog>();
+        services.AddSingleton<MainDialog>();
 
         // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-        services.AddTransient<IBot, CustomQABot<RootDialog>>();
+        services.AddTransient<IBot, CustomQABot<MainDialog>>();
 
         new DialogsBotComponent().ConfigureServices(services, Configuration);
         ComponentRegistration.Add(new DialogsComponentRegistration());        
