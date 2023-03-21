@@ -134,11 +134,15 @@ public class TranscriptMiddleware : IMiddleware
         var message = string.IsNullOrWhiteSpace(activity.Text) ? null : activity.Text.Trim();
         message ??= string.IsNullOrWhiteSpace(activity.Speak) ? null : activity.Speak.Trim();
 
-        if(!string.IsNullOrWhiteSpace(message))
+        if (!string.IsNullOrWhiteSpace(message))
         {
             message = message.Replace("FEEDBACK-YES", "Yes");
             message = message.Replace("FEEDBACK-REPHRASE", "Rephrase");
             message = message.Replace("FEEDBACK-AGENT", "Ask agent");
+
+            int start = message.IndexOf("<a>", 0);
+            int end = message.IndexOf("</a>", 0) + 4;
+            message = message.Remove(start, end - start);
 
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
