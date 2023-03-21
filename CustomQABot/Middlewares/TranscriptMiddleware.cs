@@ -158,7 +158,7 @@ public class TranscriptMiddleware : IMiddleware
                 }
             }
 
-            var sender = string.IsNullOrEmpty(activity.ReplyToId) ? "USR:" : "BOT:";
+            var sender = activity.From.Role == "bot" ? "BOT:" : "USR:";
             feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }
     }
