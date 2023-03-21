@@ -132,8 +132,6 @@ public class FeedbackDialog : ComponentDialog
             var feedback = await accessor.GetAsync(innerDc.Context, () => new Feedback(), cancellationToken);
             var escalationInput = (Newtonsoft.Json.Linq.JObject)innerDc.Context.Activity.Value;
 
-            await innerDc.Context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
-
             feedback.Title = escalationInput["title"].ToString();
             feedback.Details = escalationInput["details"].ToString();
             feedback.DateTime = DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt");
@@ -141,12 +139,13 @@ public class FeedbackDialog : ComponentDialog
             var card = CardBuilder.CreateAdaptiveCard(ESCALATION_SUBMIT_TEMPLATE, feedback, GetType().Assembly);
 
             // Transcript to user
-            await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment, ssml: "Chat Summary"), cancellationToken);
+            // await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment), cancellationToken);
             // Escalate to email
             await emailService.EscalateAsync(card.Html, cancellationToken);
             // Escalation to Teams
             await teamsService.EscalateAsync(card.CardJson, cancellationToken);
 
+            await innerDc.Context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
             // Clear feedback data
             await accessor.DeleteAsync(innerDc.Context, cancellationToken);
 

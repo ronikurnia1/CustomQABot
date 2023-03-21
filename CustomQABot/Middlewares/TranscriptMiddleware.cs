@@ -139,17 +139,10 @@ public class TranscriptMiddleware : IMiddleware
             message = message.Replace("FEEDBACK-YES", "Yes");
             message = message.Replace("FEEDBACK-REPHRASE", "Rephrase");
             message = message.Replace("FEEDBACK-AGENT", "Ask agent");
-            if(activity.ReplyToId != null)
+            if (activity.ReplyToId != null && message.Contains("<a>"))
             {
                 message = message.Replace($"<a>{activity.From.Name}</a>", "").Trim();
             }
-
-            //if (message.Contains("<a>") && message.Contains("</a>"))
-            //{
-            //    int start = message.IndexOf("<a>", 0);
-            //    int end = message.IndexOf("</a>", 0) + 4;
-            //    message = message.Remove(start, end - start).Trim();
-            //}
 
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
@@ -162,7 +155,7 @@ public class TranscriptMiddleware : IMiddleware
                 }
             }
 
-            var sender = activity.ReplyToId == null? "USR:" : "BOT:";
+            var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" : "BOT:";
             feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }
     }
