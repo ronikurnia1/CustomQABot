@@ -145,8 +145,8 @@ public class FeedbackDialog : ComponentDialog
             // Escalation to Teams
             await teamsService.EscalateAsync(card.CardJson, cancellationToken);
             await innerDc.Context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
-            
-            await accessor.DeleteAsync(innerDc.Context).ConfigureAwait(false);
+
+            await accessor.DeleteAsync(innerDc.Context);
 
             return await innerDc.EndDialogAsync(null, cancellationToken);
         }
