@@ -146,7 +146,8 @@ public class FeedbackDialog : ComponentDialog
             await teamsService.EscalateAsync(card.CardJson, cancellationToken);
             await innerDc.Context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
 
-            await accessor.DeleteAsync(innerDc.Context);
+            feedback.NegativeFeedbackCount = 0;
+            feedback.Chats = new List<Chat>();
 
             return await innerDc.EndDialogAsync(null, cancellationToken);
         }
