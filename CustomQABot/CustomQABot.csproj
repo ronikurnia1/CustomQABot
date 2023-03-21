@@ -7,16 +7,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Remove="Cards\EscalationInputCard.json" />
-	  <Content Remove="Cards\EscalationSubmitCard.json" />
-	  <Content Remove="Cards\TranscriptCard.data.json" />
-	  <Content Remove="Cards\welcomeCard.json" />
+		<Content Remove="Cards\EscalationInputCard.json" />
+		<Content Remove="Cards\EscalationSubmitCard.json" />
+		<Content Remove="Cards\WelcomeCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Cards\EscalationInputCard.json" />
-	  <EmbeddedResource Include="Cards\EscalationSubmitCard.data.json" />
-	  <EmbeddedResource Include="Cards\EscalationSubmitCard.json" />
+		<EmbeddedResource Include="Cards\EscalationInputCard.json" />
+		<EmbeddedResource Include="Cards\EscalationSubmitCard.data.json" />
+		<EmbeddedResource Include="Cards\EscalationSubmitCard.json" />
+		<EmbeddedResource Include="Cards\WelcomeCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,13 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Cards\WelcomeCard.json">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </EmbeddedResource>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Microsoft.Bot.Builder.AI.QnA\Microsoft.Bot.Builder.AI.QnA.csproj" />
+		<ProjectReference Include="..\Microsoft.Bot.Builder.AI.QnA\Microsoft.Bot.Builder.AI.QnA.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

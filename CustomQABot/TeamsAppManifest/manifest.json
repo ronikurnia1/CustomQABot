@@ -1,0 +1,68 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "1890ba84-9c63-4f2d-a7bd-5e949d753ea7",
+  "packageName": "com.uobgroup.qnabot",
+  "developer": {
+    "name": "TeamsQnaBot",
+    "websiteUrl": "https://www.uobgroup.com/",
+    "privacyUrl": "https://www.uobgroup.com/uobgroup/privacy/index.page",
+    "termsOfUseUrl": "https://www.uobgroup.com/uobgroup/important/index.page"
+  },
+  "icons": {
+    "outline": "icon-outline.png",
+    "color": "icon-color.png"
+  },
+  "name": {
+    "short": "UOB QnA Bot",
+    "full": "UOB QnA Bot"
+  },
+  "description": {
+    "short": "UOB QnA Bot",
+    "full": "UOB QnA Bot"
+  },
+  "accentColor": "#FFFFFF",
+  "bots": [
+    {
+      "botId": "1890ba84-9c63-4f2d-a7bd-5e949d753ea7",
+      "scopes": [
+        "personal",
+        "groupchat",
+        "team"
+      ],
+      "isNotificationOnly": false,
+      "supportsCalling": false,
+      "supportsVideo": false,
+      "supportsFiles": false,
+      "commandLists": [
+        {
+          "scopes": [
+            "personal",
+            "groupchat",
+            "team"
+          ],
+          "commands": [
+            {
+              "title": "MentionMe",
+              "description": "Sends message with @mention of the sender"
+            },
+            {
+              "title": "Show Welcome",
+              "description": "Shows the welcome card"
+            },
+            {
+              "title": "MessageAllMembers",
+              "description": "Send 1 to 1 message to all members of the current conversation"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [ "*.ngrok.io" ]
+}

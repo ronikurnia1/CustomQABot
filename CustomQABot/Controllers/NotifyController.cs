@@ -38,7 +38,7 @@ public class NotifyController : ControllerBase
         // Let the caller know proactive messages have been sent
         return new ContentResult()
         {
-            Content = "<html><body><h3>Proactive messages have been sent.</h3></body></html>",
+            Content = "<html><body><p>Proactive messages have been sent.</p></body></html>",
             ContentType = "text/html",
             StatusCode = (int)HttpStatusCode.OK,
         };
