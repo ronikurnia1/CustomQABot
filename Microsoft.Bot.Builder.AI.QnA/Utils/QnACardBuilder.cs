@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AdaptiveExpressions.Properties;
+using Markdig;
 using Microsoft.Bot.Schema;
 
 namespace Microsoft.Bot.Builder.AI.QnA
@@ -103,7 +104,9 @@ namespace Microsoft.Bot.Builder.AI.QnA
             }
 
             var chatActivity = Activity.CreateMessageActivity();
-            chatActivity.Text = result.Answer;
+
+            // RONI
+            chatActivity.Text = MarkdownToHtml(result.Answer);
 
             List<CardAction> buttonList = null;
             if (result?.Context?.Prompts != null &&
@@ -129,12 +132,14 @@ namespace Microsoft.Bot.Builder.AI.QnA
             string heroCardText = null;
             if (!string.IsNullOrWhiteSpace(result?.AnswerSpan?.Text))
             {
-                chatActivity.Text = result.AnswerSpan.Text;
+                // RONI
+                chatActivity.Text = MarkdownToHtml(result.AnswerSpan.Text);
 
                 // For content choice Precise only
                 if (displayPreciseAnswerOnly.Value == false)
                 {
-                    heroCardText = result.Answer;
+                    // RONI
+                    heroCardText = MarkdownToHtml(result.Answer);
                 }
             }
 
@@ -159,6 +164,13 @@ namespace Microsoft.Bot.Builder.AI.QnA
             }
 
             return chatActivity;
+        }
+
+        // RONI: workaround due to Teams
+        // not really support markdown format for image
+        private static string MarkdownToHtml(string payload)
+        {
+            return Markdown.ToHtml(payload);
         }
     }
 }

@@ -142,8 +142,10 @@ public class FeedbackDialog : ComponentDialog
             // await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment), cancellationToken);
             // Escalate to email
             await emailService.EscalateAsync(card.Html, cancellationToken);
+
             // Escalation to Teams
             await teamsService.EscalateAsync(card.CardJson, cancellationToken);
+
             await innerDc.Context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
 
             feedback.NegativeFeedbackCount = 0;
