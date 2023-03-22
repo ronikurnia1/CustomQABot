@@ -31,6 +31,10 @@ public class MainDialog : ComponentDialog
     private const bool IsTest = false;
     private const bool IncludeUnstructuredSources = true;
 
+
+    private readonly UserState userState;
+    private readonly int negativeFeedbackThreshold;
+
     private readonly ILogger<MainDialog> logger;
 
 
@@ -44,13 +48,25 @@ public class MainDialog : ComponentDialog
         ILogger<MainDialog> logger) : base(nameof(MainDialog))
     {
         this.logger = logger;
+
+        AddDialog(new TextPrompt(nameof(TextPrompt)));
         AddDialog(CreateQnAMakerDialog(configuration));
-        AddDialog(new FeedbackDialog(configuration, userState, emailEscalationService, teamsEscalationService));
+
+        AddDialog(new EscalationDialog(configuration, userState,
+            emailEscalationService, teamsEscalationService));
+        AddDialog(new FeedbackDialog());
+
         AddDialog(new WaterfallDialog(DialogId, new WaterfallStep[]
         {
             InitialStepAsync,
+            QnaStepAsync,
             FeedbackStepAsync
         }));
+
+        negativeFeedbackThreshold = int.TryParse(configuration["NegativeFeedbackThreshold"],
+            out int threshold) ? threshold : 0;
+        this.userState = userState;
+
 
         // The initial child Dialog to run.
         InitialDialogId = DialogId;
@@ -84,7 +100,8 @@ public class MainDialog : ComponentDialog
         // Create a new instance of QnAMakerDialog with dialogOptions initialized.
         var noAnswer = MessageFactory.Text(configuration["DefaultAnswer"] ?? string.Empty);
         var qnaMakerDialog = new QnAMakerDialog(nameof(QnAMakerDialog), knowledgeBaseId,
-            endpointKey, hostname, noAnswer: noAnswer, cardNoMatchResponse: MessageFactory.Text(ActiveLearningCardNoMatchResponse))
+            endpointKey, hostname, noAnswer: noAnswer,
+            cardNoMatchResponse: MessageFactory.Text(ActiveLearningCardNoMatchResponse))
         {
             Threshold = ScoreThreshold,
             ActiveLearningCardTitle = ActiveLearningCardTitle,
@@ -98,18 +115,71 @@ public class MainDialog : ComponentDialog
             RankerType = RankerType,
             IsTest = IsTest,
         };
-
         return qnaMakerDialog;
     }
 
-    private async Task<DialogTurnResult> InitialStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> InitialStepAsync(WaterfallStepContext stepContext,
+        CancellationToken cancellationToken)
     {
-        return await stepContext.BeginDialogAsync(nameof(QnAMakerDialog), null, cancellationToken);
+        // Check if any feedback from previous dialog cycle
+        var feedbackCode = stepContext.Context.Activity.Text;
+        var accessor = userState.CreateProperty<Feedback>(nameof(Feedback));
+        var feedback = await accessor.GetAsync(stepContext.Context, () => new Feedback(), cancellationToken);
+
+        switch (feedbackCode.ToUpper())
+        {
+            case "YES":
+                // acknowledge the feedback and end the dialog
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text("Thanks for your feedback!"), cancellationToken);
+                return await stepContext.EndDialogAsync(null, cancellationToken);
+
+            case "REPHRASE":
+                if (negativeFeedbackThreshold > 0 && feedback.NegativeFeedbackCount >= negativeFeedbackThreshold)
+                {
+                    // Reset the counter
+                    feedback.NegativeFeedbackCount = 0;
+                    await stepContext.Context.SendActivityAsync(MessageFactory.Text("You've tried to rephrase for 3 times, ask agent might be a good idea?"), cancellationToken);
+                    // proceed with the escalation
+                    return await stepContext.BeginDialogAsync(nameof(EscalationDialog), null, cancellationToken);
+                }
+                else
+                {
+                    // count the rephrase
+                    feedback.NegativeFeedbackCount += 1;
+                    var options = new PromptOptions
+                    {
+                        Prompt = MessageFactory.Text("Please rephrase your question and try again"),
+                    };
+                    return await stepContext.PromptAsync(nameof(TextPrompt), options, cancellationToken);
+                }
+            case "ASK AGENT":
+                // proceed with the escalation
+                return await stepContext.BeginDialogAsync(nameof(EscalationDialog), null, cancellationToken);
+            default:
+                // User skip the feedback
+                // Continue with the QnA Maker Dialog
+                var activity = stepContext.Context.Activity;
+                return await stepContext.NextAsync(activity, cancellationToken);
+        }
     }
 
-    private async Task<DialogTurnResult> FeedbackStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+    private async Task<DialogTurnResult> QnaStepAsync(WaterfallStepContext stepContext,
+        CancellationToken cancellationToken)
     {
-        return await stepContext.BeginDialogAsync(nameof(FeedbackDialog), stepContext.Result, cancellationToken);
+        if (stepContext.Result == null)
+        {
+            return await stepContext.EndDialogAsync(null, cancellationToken);
+        }
+        else
+        {
+            return await stepContext.BeginDialogAsync(nameof(QnAMakerDialog), null, cancellationToken);
+        }
+    }
+
+    private async Task<DialogTurnResult> FeedbackStepAsync(WaterfallStepContext stepContext,
+        CancellationToken cancellationToken)
+    {
+        return await stepContext.BeginDialogAsync(nameof(FeedbackDialog), null, cancellationToken);
     }
 
 }

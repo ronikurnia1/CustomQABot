@@ -88,11 +88,11 @@ public class CustomQABot<T> : TeamsActivityHandler where T : Dialog
     {
         if (turnContext.Activity.Conversation.ConversationType == "channel")
         {
-            await turnContext.SendActivityAsync($"Welcome to Microsoft Teams conversationUpdate events demo bot. This bot is configured in {turnContext.Activity.Conversation.Name}");
+            await turnContext.SendActivityAsync($"Welcome to UOB Bot. This bot is configured in {turnContext.Activity.Conversation.Name}");
         }
         else
         {
-            await turnContext.SendActivityAsync("Welcome to Microsoft Teams conversationUpdate events demo bot.");
+            await turnContext.SendActivityAsync("Welcome to UOB Bot.");
         }
     }
 

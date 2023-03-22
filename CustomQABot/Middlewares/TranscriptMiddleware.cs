@@ -73,8 +73,8 @@ public class TranscriptMiddleware : IMiddleware
     private async Task TryLogTranscriptAsync(Queue<IMessageActivity> chatQueue, ITurnContext turnContext,
         ILogger<TranscriptMiddleware> logger, CancellationToken cancellationToken)
     {
-        var propertyAccessor = userState.CreateProperty<Feedback>(nameof(Feedback));
-        var transcript = await propertyAccessor.GetAsync(turnContext, () => new Feedback(), cancellationToken);
+        var accessor = userState.CreateProperty<Feedback>(nameof(Feedback));
+        var feedback = await accessor.GetAsync(turnContext, () => new Feedback(), cancellationToken);
         try
         {
             while (chatQueue.Count > 0)
@@ -82,7 +82,7 @@ public class TranscriptMiddleware : IMiddleware
                 // Process the queue and log all the activities in parallel.
                 var activity = chatQueue.Dequeue();
                 BotAssert.ActivityNotNull(activity);
-                UpdateFeedbackTranscript(transcript, activity);
+                UpdateFeedbackTranscript(feedback, activity);
             }
         }
         catch (Exception ex)
@@ -136,17 +136,7 @@ public class TranscriptMiddleware : IMiddleware
 
         if (!string.IsNullOrWhiteSpace(message))
         {
-            message = message.Replace("FEEDBACK-YES", "Yes");
-            message = message.Replace("FEEDBACK-REPHRASE", "Rephrase");
-            message = message.Replace("FEEDBACK-AGENT", "Ask agent");
-
             message = Regex.Replace(message, @"<at>*>.*?</at>", string.Empty).Trim();
-
-            //if (activity.ReplyToId != null && message.Contains("<a>"))
-            //{
-            //    message = message.Replace($"<a>{activity.From.Name}</a>", "").Trim();
-            //}
-
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
                 var card = HeroCard.ContentType == activity.Attachments[0].ContentType
@@ -154,7 +144,8 @@ public class TranscriptMiddleware : IMiddleware
 
                 if (card != null)
                 {
-                    message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
+                    message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", 
+                        card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
                 }
             }
             var sender = activity.From.Name ?? "N/A";
