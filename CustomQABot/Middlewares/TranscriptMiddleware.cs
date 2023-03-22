@@ -1,10 +1,12 @@
-﻿using Microsoft.Bot.Builder;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -139,10 +141,13 @@ public class TranscriptMiddleware : IMiddleware
             message = message.Replace("FEEDBACK-YES", "Yes");
             message = message.Replace("FEEDBACK-REPHRASE", "Rephrase");
             message = message.Replace("FEEDBACK-AGENT", "Ask agent");
-            if (activity.ReplyToId != null && message.Contains("<a>"))
-            {
-                message = message.Replace($"<a>{activity.From.Name}</a>", "").Trim();
-            }
+
+            message = Regex.Replace(message, @"<at>*>.*?</at>", string.Empty).Trim();
+
+            //if (activity.ReplyToId != null && message.Contains("<a>"))
+            //{
+            //    message = message.Replace($"<a>{activity.From.Name}</a>", "").Trim();
+            //}
 
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
@@ -154,8 +159,9 @@ public class TranscriptMiddleware : IMiddleware
                     message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
                 }
             }
-            var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" :
-                activity.From.Role == "user" ? "USR:" : "BOT:";
+            var sender = activity.From.Name ?? "N/A";
+            //var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" :
+            //    activity.From.Role == "user" ? "USR:" : "BOT:";
 
             feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Logging;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace CustomQABot.Controllers;
@@ -31,18 +32,18 @@ public class BotController : ControllerBase
     [HttpPost, HttpGet]
     public async Task PostAsync()
     {
-        //var body = string.Empty;
-        //using(var streamReader = new StreamReader(Request.Body))
-        //{
-        //    body = await streamReader.ReadToEndAsync();
-        //    logger.LogInformation($"Receiving a request: {body}");
-        //}
+        var body = string.Empty;
+        using (var streamReader = new StreamReader(Request.Body))
+        {
+            body = await streamReader.ReadToEndAsync();
+            logger.LogInformation($"Receiving a request: {body}");
+        }
 
-        //using var injectedRequestStream = new MemoryStream();
-        //var bytesToWrite = System.Text.Encoding.UTF8.GetBytes(body);
-        //injectedRequestStream.Write(bytesToWrite, 0, bytesToWrite.Length);
-        //injectedRequestStream.Seek(0, SeekOrigin.Begin);
-        //Request.Body = injectedRequestStream;
+        using var injectedRequestStream = new MemoryStream();
+        var bytesToWrite = System.Text.Encoding.UTF8.GetBytes(body);
+        injectedRequestStream.Write(bytesToWrite, 0, bytesToWrite.Length);
+        injectedRequestStream.Seek(0, SeekOrigin.Begin);
+        Request.Body = injectedRequestStream;
 
         // Delegate the processing of the HTTP POST to the adapter.
         // The adapter will invoke the bot.
