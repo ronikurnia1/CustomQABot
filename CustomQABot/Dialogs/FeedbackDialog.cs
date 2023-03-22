@@ -1,11 +1,13 @@
 ﻿using CustomQABot.Cards;
 using CustomQABot.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,37 +50,7 @@ public class FeedbackDialog : ComponentDialog
 
     private async Task<DialogTurnResult> AskFeedbackStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        var promptCard = new HeroCard()
-        {
-            Text = "Was this answer helpful? \n\nIf not, please rephrase your question or Ask agent",
-            Buttons = new List<CardAction> {
-                new CardAction {
-                Type = "messageBack",
-                Title = "Yes",
-                Text = "FEEDBACK-YES",
-                DisplayText = "Yes"
-                },
-                new CardAction {
-                Type = "messageBack",
-                Title = "Rephrase",
-                Text = "FEEDBACK-REPHRASE",
-                DisplayText = "Rephrase"
-                },
-                new CardAction {
-                Type = "messageBack",
-                Title = "Ask Agent",
-                Text = "FEEDBACK-AGENT",
-                DisplayText = "Ask Agent"
-                }
-            }
-        };
-        var activity = MessageFactory.Attachment(promptCard.ToAttachment(), ssml: "Was this answer helpful?");
-        var optionOptions = new PromptOptions
-        {
-            Prompt = (Activity)activity,
-        };
-
-        return await stepContext.PromptAsync(nameof(TextPrompt), optionOptions, cancellationToken);
+        return await stepContext.PromptAsync(nameof(TextPrompt), GetFeedbackPrompt(), cancellationToken);
     }
 
     private async Task<DialogTurnResult> FollowUpStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
@@ -87,14 +59,16 @@ public class FeedbackDialog : ComponentDialog
         var accessor = userState.CreateProperty<Feedback>(nameof(Feedback));
         var feedback = await accessor.GetAsync(stepContext.Context, () => new Feedback(), cancellationToken);
 
-        switch (feedbackCode)
+        switch (feedbackCode.ToUpper())
         {
-            case "FEEDBACK-YES":
+            case "YES":
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text("Thanks for your feedback!"), cancellationToken);
-                return await stepContext.EndDialogAsync(null, cancellationToken);
-            case "FEEDBACK-REPHRASE":
+                return await stepContext.Parent.EndDialogAsync(null, cancellationToken);
+            case "REPHRASE":
                 if (negativeFeedbackThreshold > 0 && feedback.NegativeFeedbackCount >= negativeFeedbackThreshold)
                 {
+                    // Reset the counter
+                    feedback.NegativeFeedbackCount = 0;
                     await stepContext.Context.SendActivityAsync(MessageFactory.Text("You've asked to rephrase for 3 times, why don't just ask agent?"), cancellationToken);
                     return await stepContext.NextAsync(feedback, cancellationToken);
                 }
@@ -103,31 +77,32 @@ public class FeedbackDialog : ComponentDialog
                     // count the effort
                     feedback.NegativeFeedbackCount += 1;
                     await stepContext.Context.SendActivityAsync(MessageFactory.Text("Please rephrase your question and try again"), cancellationToken);
-                    return await stepContext.EndDialogAsync(null, cancellationToken);
+                    return await stepContext.Parent.EndDialogAsync(null, cancellationToken);
                 }
-            case "FEEDBACK-AGENT":
+            case "ASK AGENT":
                 return await stepContext.NextAsync(feedback, cancellationToken);
             default:
-                return await stepContext.EndDialogAsync(null, cancellationToken);
+                // Restart from biggening 
+                await stepContext.Context.SendActivityAsync(MessageFactory.Text("Please give a feedback first before continue."), cancellationToken);
+                return await stepContext.ReplaceDialogAsync(nameof(TextPrompt), GetFeedbackPrompt(), cancellationToken);
         }
     }
 
     private async Task<DialogTurnResult> EscalationInputStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
-        var card = CardBuilder.CreateAdaptiveCardAttachment(ESCALATION_INPUT_TEMPLATE, GetType().Assembly);
-        var activity = MessageFactory.Attachment(card, ssml: "Fill the form to ask agent");
-        var promptOptions = new PromptOptions
-        {
-            Prompt = (Activity)activity
-        };
-
-        return await stepContext.PromptAsync(ESCALATION_INPUT_DIALOG_ID, promptOptions, cancellationToken);
+        return await stepContext.PromptAsync(ESCALATION_INPUT_DIALOG_ID, 
+            GetEscalationInput(GetType().Assembly), cancellationToken);
     }
 
     protected override async Task<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken = default)
     {
         if (innerDc.ActiveDialog.Id == ESCALATION_INPUT_DIALOG_ID)
         {
+            if (innerDc.Context.Activity.Value == null)
+            {
+                await innerDc.Context.SendActivityAsync(MessageFactory.Text("Please fill up the form first"), cancellationToken);
+                return await innerDc.ReplaceDialogAsync(ESCALATION_INPUT_DIALOG_ID, GetEscalationInput(GetType().Assembly), cancellationToken);
+            }
             var accessor = userState.CreateProperty<Feedback>(nameof(Feedback));
             var feedback = await accessor.GetAsync(innerDc.Context, () => new Feedback(), cancellationToken);
             var escalationInput = (Newtonsoft.Json.Linq.JObject)innerDc.Context.Activity.Value;
@@ -156,6 +131,50 @@ public class FeedbackDialog : ComponentDialog
         return await base.OnContinueDialogAsync(innerDc, cancellationToken);
     }
 
+
+    private static PromptOptions GetFeedbackPrompt()
+    {
+        var promptCard = new HeroCard()
+        {
+            Text = "Was this answer helpful? \n\nIf not, please rephrase your question or Ask agent",
+            Buttons = new List<CardAction> {
+                new CardAction {
+                Type = "messageBack",
+                Title = "Yes",
+                Text = "Yes",
+                DisplayText = "Yes"
+                },
+                new CardAction {
+                Type = "messageBack",
+                Title = "Rephrase",
+                Text = "Rephrase",
+                DisplayText = "Rephrase"
+                },
+                new CardAction {
+                Type = "messageBack",
+                Title = "Ask Agent",
+                Text = "Ask Agent",
+                DisplayText = "Ask Agent"
+                }
+            }
+        };
+        var activity = MessageFactory.Attachment(promptCard.ToAttachment(), ssml: "Was this answer helpful?");
+        return new PromptOptions
+        {
+            Prompt = (Activity)activity,
+        };
+    }
+
+
+    private static PromptOptions GetEscalationInput(Assembly assembly)
+    {
+        var card = CardBuilder.CreateAdaptiveCardAttachment(ESCALATION_INPUT_TEMPLATE, assembly);
+        var activity = MessageFactory.Attachment(card, ssml: "Fill the form to ask agent");
+        return new PromptOptions
+        {
+            Prompt = (Activity)activity
+        };
+    }
 }
 
 

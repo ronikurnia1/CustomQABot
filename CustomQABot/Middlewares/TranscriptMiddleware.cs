@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.Bot.Builder;
+﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -57,7 +56,6 @@ public class TranscriptMiddleware : IMiddleware
             //_ = TryLogTranscriptAsync(transcript, ctx, logger, cancellationToken);
             return responses;
         });
-
 
         // process bot logic
         await nextTurn(cancellationToken).ConfigureAwait(false);
