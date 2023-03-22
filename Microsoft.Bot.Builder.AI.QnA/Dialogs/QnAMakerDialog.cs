@@ -1,6 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AdaptiveExpressions.Properties;
+using Microsoft.Bot.Builder.AI.QnA.Models;
+using Microsoft.Bot.Builder.AI.QnA.Utils;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +14,6 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using AdaptiveExpressions.Properties;
-using Microsoft.Bot.Builder.AI.QnA.Models;
-using Microsoft.Bot.Builder.AI.QnA.Utils;
-using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Schema;
-using Newtonsoft.Json;
 
 namespace Microsoft.Bot.Builder.AI.QnA.Dialogs
 {
@@ -614,7 +614,8 @@ namespace Microsoft.Bot.Builder.AI.QnA.Dialogs
             var response = (List<QueryResult>)stepContext.Result;
             if (response.Count > 0 && response[0].Id != null)
             {
-                var message = QnACardBuilder.GetQnADefaultResponse(response.First(), dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly);
+                // RONI: adding channel
+                var message = QnACardBuilder.GetQnADefaultResponse(response.First(), dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly, stepContext.Context.Activity.ChannelId.Equals(Connector.Channels.Msteams));
                 await stepContext.Context.SendActivityAsync(message).ConfigureAwait(false);
             }
             else
@@ -629,7 +630,10 @@ namespace Microsoft.Bot.Builder.AI.QnA.Dialogs
                     if (response.Count == 1 && response[0].Id == null)
                     {
                         // Nomatch Response from service.
-                        var message = QnACardBuilder.GetQnADefaultResponse(response.First(), dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly);
+                        // RONI: adding channel
+                        var message = QnACardBuilder.GetQnADefaultResponse(response.First(), dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly,
+                            stepContext.Context.Activity.ChannelId.Equals(Connector.Channels.Msteams));
+
                         await stepContext.Context.SendActivityAsync(message).ConfigureAwait(false);
                     }
                     else
@@ -839,7 +843,9 @@ namespace Microsoft.Bot.Builder.AI.QnA.Dialogs
                     ObjectPath.SetPathValue(stepContext.ActiveDialog.State, Options, dialogOptions);
 
                     // Get multi-turn prompts card activity.
-                    var message = QnACardBuilder.GetQnADefaultResponse(answer, dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly);
+                    // RONI: adding channel
+                    var message = QnACardBuilder.GetQnADefaultResponse(answer, dialogOptions.ResponseOptions.DisplayPreciseAnswerOnly,
+                        stepContext.Context.Activity.ChannelId.Equals(Connector.Channels.Msteams));
                     await stepContext.Context.SendActivityAsync(message).ConfigureAwait(false);
 
                     return new DialogTurnResult(DialogTurnStatus.Waiting);

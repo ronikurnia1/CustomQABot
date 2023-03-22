@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AdaptiveExpressions.Properties;
 using Markdig;
 using Microsoft.Bot.Schema;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Bot.Builder.AI.QnA
 {
@@ -95,8 +95,9 @@ namespace Microsoft.Bot.Builder.AI.QnA
         /// </summary>
         /// <param name="result">Result to be dispalyed as prompts.</param>
         /// <param name="displayPreciseAnswerOnly">Choice to render precise answer.</param>
+        /// <param name="isTeamsChannel">Optional to render HTML on teams: markdown doesn't work for image</param>
         /// <returns>IMessageActivity.</returns>
-        public static IMessageActivity GetQnADefaultResponse(QueryResult result, BoolExpression displayPreciseAnswerOnly)
+        public static IMessageActivity GetQnADefaultResponse(QueryResult result, BoolExpression displayPreciseAnswerOnly, bool isTeamsChannel = false)
         {
             if (result == null)
             {
@@ -106,7 +107,7 @@ namespace Microsoft.Bot.Builder.AI.QnA
             var chatActivity = Activity.CreateMessageActivity();
 
             // RONI
-            chatActivity.Text = MarkdownToHtml(result.Answer);
+            chatActivity.Text = isTeamsChannel ? MarkdownToHtml(result.Answer) : result.Answer;
 
             List<CardAction> buttonList = null;
             if (result?.Context?.Prompts != null &&
@@ -133,13 +134,13 @@ namespace Microsoft.Bot.Builder.AI.QnA
             if (!string.IsNullOrWhiteSpace(result?.AnswerSpan?.Text))
             {
                 // RONI
-                chatActivity.Text = MarkdownToHtml(result.AnswerSpan.Text);
+                chatActivity.Text = isTeamsChannel ? MarkdownToHtml(result.AnswerSpan.Text) : result.AnswerSpan.Text;
 
                 // For content choice Precise only
                 if (displayPreciseAnswerOnly.Value == false)
                 {
                     // RONI
-                    heroCardText = MarkdownToHtml(result.Answer);
+                    heroCardText = isTeamsChannel ? MarkdownToHtml(result.Answer): result.Answer;
                 }
             }
 
