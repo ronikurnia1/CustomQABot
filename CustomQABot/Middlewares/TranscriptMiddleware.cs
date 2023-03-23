@@ -137,6 +137,7 @@ public class TranscriptMiddleware : IMiddleware
         if (!string.IsNullOrWhiteSpace(message))
         {
             message = Regex.Replace(message, @"<at>*>.*?</at>", string.Empty).Trim();
+            message = Markdig.Markdown.ToPlainText(message);
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
                 var card = HeroCard.ContentType == activity.Attachments[0].ContentType

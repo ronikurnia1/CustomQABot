@@ -47,19 +47,22 @@ public class EscalationDialog : ComponentDialog
     private async Task<DialogTurnResult> EscalationInputStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
     {
         return await stepContext.PromptAsync(ESCALATION_INPUT_DIALOG_ID,
-            GetEscalationInput(GetType().Assembly), cancellationToken);
+            GetEscalationInput(GetType().Assembly), cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task<DialogTurnResult> OnContinueDialogAsync(DialogContext innerDc, CancellationToken cancellationToken = default)
     {
         if (innerDc.Context.Activity.Value != null)
         {
-            await Escalate(innerDc.Parent.Context, cancellationToken);
-            return await innerDc.EndDialogAsync(null, cancellationToken);
+            await Escalate(innerDc.Parent.Context, cancellationToken).ConfigureAwait(false);
+            return await innerDc.EndDialogAsync(null, cancellationToken).ConfigureAwait(false);
         }
-        // user skip, cancel the form, asking new question
-        var activity = innerDc.Context.Activity;
-        return await innerDc.EndDialogAsync(activity, cancellationToken);
+        else
+        {
+            // user skip, cancel the form, asking new question
+            var activity = innerDc.Context.Activity;
+            return await innerDc.EndDialogAsync(activity, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static PromptOptions GetEscalationInput(Assembly assembly)
@@ -86,11 +89,11 @@ public class EscalationDialog : ComponentDialog
 
         // Transcript to user
         // await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment), cancellationToken);
-        // Escalate to email
-        await emailService.EscalateAsync(card.Html, cancellationToken);
-        // Escalation to Teams
-        await teamsService.EscalateAsync(card.CardJson, cancellationToken);
         await context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
+        // Escalate to email
+        await emailService.EscalateAsync(card.Html, cancellationToken).ConfigureAwait(false);
+        // Escalation to Teams
+        await teamsService.EscalateAsync(card.CardJson, cancellationToken).ConfigureAwait(false);
 
         feedback.NegativeFeedbackCount = 0;
         feedback.Chats = new List<Chat>();
