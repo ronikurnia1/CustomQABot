@@ -362,3 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /CustomQABot/appsettings.development.json
+/CustomQABot/TeamsAppManifest/icon-color.png
+/CustomQABot/TeamsAppManifest/icon-outline.png
+/CustomQABot/TeamsAppManifest/manifest.json
+/CustomQABot/TeamsAppManifest/manifest.zip
