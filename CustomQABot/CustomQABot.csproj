@@ -8,12 +8,15 @@
 
 	<ItemGroup>
 		<Content Remove="Cards\EscalationInputCard.json" />
+		<Content Remove="Cards\EscalationNoTranscriptSubmitCard.json" />
+		<Content Remove="Cards\EscalationSubmitCard - Copy.data.json" />
 		<Content Remove="Cards\EscalationSubmitCard.json" />
 		<Content Remove="Cards\WelcomeCard.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Cards\EscalationInputCard.json" />
+		<EmbeddedResource Include="Cards\EscalationNoTranscriptSubmitCard.json" />
 		<EmbeddedResource Include="Cards\EscalationSubmitCard.data.json" />
 		<EmbeddedResource Include="Cards\EscalationSubmitCard.json" />
 		<EmbeddedResource Include="Cards\WelcomeCard.json" />

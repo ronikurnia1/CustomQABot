@@ -6,7 +6,6 @@ public class Feedback
 {
     public string Title { get; set; }
     public string Details { get; set; }
-    public string Logo { get; set; }    
     public string Name { get; set; }
     public string DateTime { get; set; }
     public int NegativeFeedbackCount { get; set; } = 0;

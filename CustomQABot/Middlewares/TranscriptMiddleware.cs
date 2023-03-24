@@ -127,6 +127,8 @@ public class TranscriptMiddleware : IMiddleware
 
     private static void UpdateFeedbackTranscript(Feedback feedback, IMessageActivity activity)
     {
+        if (activity.Text == "Thank you, your input has been sent to agent.") return;
+
         if (string.IsNullOrWhiteSpace(feedback.Name))
         {
             feedback.Name = string.IsNullOrEmpty(activity.ReplyToId) ? activity.From.Name : string.Empty;
@@ -137,7 +139,8 @@ public class TranscriptMiddleware : IMiddleware
         if (!string.IsNullOrWhiteSpace(message))
         {
             message = Regex.Replace(message, @"<at>*>.*?</at>", string.Empty).Trim();
-            message = Markdig.Markdown.ToPlainText(message);
+            message = Regex.Replace(message, @"<[^>]*>", String.Empty);
+
             if (message == "Did you mean:" && activity.Attachments.Count > 0)
             {
                 var card = HeroCard.ContentType == activity.Attachments[0].ContentType
@@ -145,14 +148,11 @@ public class TranscriptMiddleware : IMiddleware
 
                 if (card != null)
                 {
-                    message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", 
+                    message = $"{message}{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ",
                         card["buttons"].ToArray().Select(b => b["title"].ToString()).ToArray())}";
                 }
             }
-            var sender = activity.From.Name ?? "N/A";
-            //var sender = string.IsNullOrWhiteSpace(activity.ReplyToId) ? "USR:" :
-            //    activity.From.Role == "user" ? "USR:" : "BOT:";
-
+            var sender = feedback.Name == activity.From.Name ? "USR:" : "BOT:";
             feedback.Chats.Add(new Chat { Message = message, Sender = sender });
         }
     }

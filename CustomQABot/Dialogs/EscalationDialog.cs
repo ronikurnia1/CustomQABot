@@ -15,11 +15,14 @@ namespace CustomQABot.Dialogs;
 public class EscalationDialog : ComponentDialog
 {
     private const string ESCALATION_INPUT_TEMPLATE = "CustomQABot.Cards.EscalationInputCard.json";
+
     private const string ESCALATION_SUBMIT_TEMPLATE = "CustomQABot.Cards.EscalationSubmitCard.json";
+    private const string ESCALATION_No_TRANSCRIPT_SUBMIT_TEMPLATE = "CustomQABot.Cards.EscalationNoTranscriptSubmitCard.json";
+
     private const string ESCALATION_INPUT_DIALOG_ID = "escalationInput";
 
     private readonly UserState userState;
-
+    private readonly bool includeChatTranscript;
 
     private readonly IEscalationService emailService;
     private readonly IEscalationService teamsService;
@@ -39,7 +42,7 @@ public class EscalationDialog : ComponentDialog
 
         emailService = escalationService;
         teamsService = teamsEscalationService;
-
+        includeChatTranscript = configuration["IncludeChatTranscript"] != null ? configuration.GetValue<bool>("IncludeChatTranscript") : false;
         // The initial child Dialog to run.
         InitialDialogId = nameof(WaterfallDialog);
     }
@@ -81,15 +84,19 @@ public class EscalationDialog : ComponentDialog
         var accessor = userState.CreateProperty<Feedback>(nameof(Feedback));
         var feedback = await accessor.GetAsync(context, () => new Feedback(), cancellationToken);
         var escalationInput = (Newtonsoft.Json.Linq.JObject)context.Activity.Value;
+
         feedback.Title = escalationInput["title"].ToString();
         feedback.Details = escalationInput["details"].ToString();
         feedback.DateTime = DateTime.Now.ToString("MMMM dd, yyyy hh:mm tt");
-        feedback.Logo = "https://botuob-webapp.azurewebsites.net/images/UOB_transparent.png";
-        var card = CardBuilder.CreateAdaptiveCard(ESCALATION_SUBMIT_TEMPLATE, feedback, GetType().Assembly);
+
+        var template = includeChatTranscript ? ESCALATION_SUBMIT_TEMPLATE : ESCALATION_No_TRANSCRIPT_SUBMIT_TEMPLATE;
+        var card = CardBuilder.CreateAdaptiveCard(template, feedback, GetType().Assembly);
+
+        var message = MessageFactory.Text("Thank you, your input has been sent to agent.");
+        await context.SendActivityAsync(message, cancellationToken) ;
 
         // Transcript to user
         // await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment), cancellationToken);
-        await context.SendActivityAsync(MessageFactory.Text("Thank you, your input has been sent to agent."), cancellationToken);
         // Escalate to email
         await emailService.EscalateAsync(card.Html, cancellationToken).ConfigureAwait(false);
         // Escalation to Teams

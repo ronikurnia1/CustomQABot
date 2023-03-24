@@ -9,6 +9,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,7 @@ public class MainDialog : ComponentDialog
     private const bool IsTest = false;
     private const bool IncludeUnstructuredSources = true;
 
+    private readonly string[] ASK_AGENT = { "ASK AGENT", "ESCALATE TO AGENT" };
 
     private readonly UserState userState;
     private readonly int negativeFeedbackThreshold;
@@ -152,7 +154,7 @@ public class MainDialog : ComponentDialog
                     };
                     return await stepContext.PromptAsync(nameof(TextPrompt), options, cancellationToken);
                 }
-            case "ASK AGENT":
+            case string a when ASK_AGENT.Contains(a.ToUpper()):
                 // proceed with the escalation
                 return await stepContext.BeginDialogAsync(nameof(EscalationDialog), null, cancellationToken);
             default:
