@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using static CustomQABot.Cards.CardBuilder;
 
 namespace CustomQABot.Services;
 
@@ -20,7 +21,7 @@ public class TeamsEscalationService : IEscalationService
         httpClient.BaseAddress = new System.Uri(configuration["TeamsWebHook"]);
     }
 
-    public async Task EscalateAsync(string payload, CancellationToken cancellationToken)
+    public async Task EscalateAsync(string payload, string title, CancellationToken cancellationToken)
     {
         // TODO: send notif to teams channel (not via webhook)
 

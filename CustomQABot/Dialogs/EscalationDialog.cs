@@ -6,6 +6,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,10 @@ public class EscalationDialog : ComponentDialog
         }
         else
         {
+            if (MainDialog.ASK_AGENT.Contains(innerDc.Context.Activity.Text.ToUpper()))
+            {
+                return await base.OnContinueDialogAsync(innerDc, cancellationToken);
+            }
             // user skip, cancel the form, asking new question
             var activity = innerDc.Context.Activity;
             return await innerDc.EndDialogAsync(activity, cancellationToken).ConfigureAwait(false);
@@ -93,14 +98,14 @@ public class EscalationDialog : ComponentDialog
         var card = CardBuilder.CreateAdaptiveCard(template, feedback, GetType().Assembly);
 
         var message = MessageFactory.Text("Thank you, your input has been sent to agent.");
-        await context.SendActivityAsync(message, cancellationToken) ;
+        await context.SendActivityAsync(message, cancellationToken);
 
         // Transcript to user
         // await innerDc.Context.SendActivityAsync(MessageFactory.Attachment(card.Attachment), cancellationToken);
         // Escalate to email
-        await emailService.EscalateAsync(card.Html, cancellationToken).ConfigureAwait(false);
+        await emailService.EscalateAsync(card.Html, feedback.Title, cancellationToken).ConfigureAwait(false);
         // Escalation to Teams
-        await teamsService.EscalateAsync(card.CardJson, cancellationToken).ConfigureAwait(false);
+        await teamsService.EscalateAsync(card.CardJson, feedback.Title, cancellationToken).ConfigureAwait(false);
 
         feedback.NegativeFeedbackCount = 0;
         feedback.Chats = new List<Chat>();

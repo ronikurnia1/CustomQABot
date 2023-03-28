@@ -32,7 +32,7 @@ public class MainDialog : ComponentDialog
     private const bool IsTest = false;
     private const bool IncludeUnstructuredSources = true;
 
-    private readonly string[] ASK_AGENT = { "ASK AGENT", "ESCALATE TO AGENT" };
+    internal static readonly string[] ASK_AGENT = { "ASK AGENT", "ESCALATE TO AGENT" };
 
     private readonly UserState userState;
     private readonly int negativeFeedbackThreshold;

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static CustomQABot.Cards.CardBuilder;
 
 namespace CustomQABot.Services;
 
@@ -24,7 +25,7 @@ public class EmailEscalationService : IEscalationService
     }
 
 
-    public async Task EscalateAsync(string payLoad, CancellationToken cancellationToken)
+    public async Task EscalateAsync(string payLoad, string title, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(communicationServiceConnectionString)) return;
 
@@ -32,9 +33,9 @@ public class EmailEscalationService : IEscalationService
         EmailClient emailClient = new(communicationServiceConnectionString);
 
         // Create the email content
-        var emailContent = new EmailContent("Escalation Chat Transcript")
+        var emailContent = new EmailContent($"Service Request: {title}")
         {
-            PlainText = "Chat transcript available on HTML",
+            PlainText = "New service request",
             Html = payLoad
         };
 
