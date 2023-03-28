@@ -97,7 +97,7 @@ public class EscalationDialog : ComponentDialog
         var template = includeChatTranscript ? ESCALATION_SUBMIT_TEMPLATE : ESCALATION_No_TRANSCRIPT_SUBMIT_TEMPLATE;
         var card = CardBuilder.CreateAdaptiveCard(template, feedback, GetType().Assembly);
 
-        var message = MessageFactory.Text("Thank you, your input has been sent to agent.");
+        var message = MessageFactory.Text("Thank you, you will receive your ticket number fo your request shortly.");
         await context.SendActivityAsync(message, cancellationToken);
 
         // Transcript to user
